@@ -68,11 +68,13 @@ class SensorData{
         let aqi = PurpleAirApi.aqiFromPM(pm);
         let color = PurpleAirApi.aqiColor(aqi)
         let map = this.getMapURL(si.minutes);
+        let text = aqi >= 100 ? "white" : "black";
         return {
             label: si.label,
             aqi: aqi,
             pm: pm,
             color: color,
+            text: text,
             map: map,
         }
     }

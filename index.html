@@ -58,7 +58,7 @@
                 <td v-if="!s.error" class="aqi">
                     <table>
                         <tr>
-                            <td v-for="si in statsInfo" :style="{background: s.getStat(si)?.color}">
+                            <td v-for="si in statsInfo" v-bind:style="{background: s.getStat(si)?.color, color: s.getStat(si)?.text}">
                                 <div class="stat-label">{{s.getStat(si)?.label}}</div>
                                 <div class="stat-aqi">{{s.getStat(si)?.aqi}}</div>
                                 <div class="stat-pm">{{s.getStat(si)?.pm}} µg/m3</div>
