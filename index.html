@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Purp!</title>
+
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+
+    <!-- development version, includes helpful console warnings
+    -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <!-- production version, optimized for size and speed
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    -->
+
+    <link rel="stylesheet" href="purp.css">
+
+    <script type="text/javascript" src="utils.js"></script>
+    <script type="text/javascript" src="purp.js"></script>
+
+</head>
+<body onload="main(3)">
+
+<par>
+    bla2
+</par>
+
+<par>
+    bla3
+</par>
+
+<div id="app">
+    {{title}}
+
+    <div v-if="!error">
+        <p>Sensors:</p>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Results</th>
+            </tr>
+            <tr v-for="s in sensors">
+                <td v-if="!s.error">{{ s.id }}</td>
+                <td v-if="!s.error">{{ s.results?.name }}</td>
+                <td v-if="!s.error">{{ s.results }}</td>
+
+                <td v-if="s.error" colspan="3" class="error">{{ s.error }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div v-if="error" class="error">
+        {{error}}
+    </div>
+</div>
+
+</body>
+</html>

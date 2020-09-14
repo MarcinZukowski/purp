@@ -1,0 +1,27 @@
+body {
+    background-color: aliceblue;
+    color: black;
+    font-family: Consolas;
+}
+
+.error {
+    background-color: red;
+    color: white;
+    font-size: 20pt;
+
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 4px solid black;
+}
+
+tr {
+    border: 2px solid black;
+}
+
+td,th {
+    border: 1px solid black;
+    padding: 3px;
+}
