@@ -42,7 +42,11 @@
                 <th>Results</th>
             </tr>
             <tr v-for="s in sensors">
-                <td v-if="!s.error">{{ s.id }}</td>
+                <td v-if="!s.error">
+                    {{ s.id }}
+                    <br>
+                    <a v-bind:href="s.getInfoURL()"><img src="img/info-small.png"/></a>
+                </td>
                 <td v-if="!s.error">
                     {{ s.results?.Label }}
                     <br/>

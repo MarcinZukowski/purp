@@ -79,4 +79,9 @@ class SensorData{
             map: map,
         }
     }
+
+    getInfoURL()
+    {
+        return `https://www.purpleair.com/sensorlist?show=${this.id}&key=${this.key}`;
+    }
 }
