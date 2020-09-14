@@ -84,17 +84,27 @@ class SensorData{
         return `https://www.purpleair.com/sensorlist?show=${this.id}&key=${this.key}`;
     }
 
-    getMapURL(minutes)
+    getMapURL(minutes = 10, mode = "AQI")
     {
         if (!this.results) {
             return null;
         }
-        if (isNaN(minutes)) {
-            minutes = 10;
-        }
         let zoom = 17;
         let lat = this.results.Lat;
         let lon = this.results.Lon;
-        return `https://www.purpleair.com/map?opt=1/mAQI/a${minutes}/cC0&key=${this.key}&select=${this.id}#${zoom}/${lat}/${lon}`
+        return `https://www.purpleair.com/map?opt=1/m${mode}/a${minutes}/cC0&key=${this.key}&select=${this.id}#${zoom}/${lat}/${lon}`
+    }
+
+    getTempF()
+    {
+        if (!this.results) {
+            return null;
+        }
+        return 1.0 * this.results.temp_f;
+    }
+
+    getTempURL()
+    {
+        return this.getMapURL(10, "TEMP");
     }
 }

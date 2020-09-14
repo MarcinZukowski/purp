@@ -39,6 +39,7 @@
             <tr>
                 <th>ID</th>
                 <th>Name</th>
+                <th>Temperature</th>
                 <th>AQI</th>
                 <th>Results</th>
             </tr>
@@ -54,6 +55,11 @@
                     ({{ s.results?.DEVICE_LOCATIONTYPE }})
                     <br/>
                     <div class="stat-map"><a v-bind:href="s.getMapURL()"><img src="img/map-small.png"/></a></div>
+                </td>
+                <td v-if="!s.error" class="temp">
+                    {{ s.getTempF() }} °F
+                    <br/>
+                    <div class="stat-map"><a v-bind:href="s.getTempURL()"><img src="img/map-small.png"/></a></div>
                 </td>
                 <td v-if="!s.error" class="aqi">
                     <table>
@@ -75,7 +81,7 @@
 
                 </td>
 
-                <td v-if="s.error" colspan="4" class="error">{{ s.error }}</td>
+                <td v-if="s.error" colspan="5" class="error">{{ s.error }}</td>
             </tr>
         </table>
     </div>
