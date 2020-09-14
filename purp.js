@@ -11,16 +11,15 @@ class PurpleAPI {
     /** Set headers necessary for accessing PurpleAir */
     static setHeaders(request)
     {
-        request.setRequestHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, Cookie");
-        request.setRequestHeader("Content-Type", "application/json");
-        request.setRequestHeader("Accept", "application/json");
+//        request.setRequestHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, Cookie");
+//        request.setRequestHeader("Access-Control-Allow-Origin", "*");
+//        request.setRequestHeader("Content-Type", "application/json");
+//        request.setRequestHeader("Accept", "application/json");
     }
 
     static getSensorData(sensor)
     {
         let url = `https://www.purpleair.com/json?show=${sensor.id}&key=${sensor.key}`;
-
-        fun(url)
 
         $.ajax({
             type: "GET",
@@ -59,8 +58,18 @@ class SensorData{
     consumeData(data)
     {
         fun(data);
-        clearError();
-        this.results = data;
+        this.clearError();
+        this.results = data.results[0];
+    }
+
+    getAQI()
+    {
+        if (this.results) {
+            return PurpleAirApi.aqiFromPM(1.0 * this.results.PM2_5Value);
+        } else {
+            return "?";
+        }
+
     }
 }
 
@@ -72,15 +81,13 @@ function main()
         data: data
     });
 
-    shows = $.QueryString.show.split(',');
-    fun(shows)
-    keys = $.QueryString.key.split?.(',');
-    fun(keys);
+    let shows = $.QueryString.show?.split(',');
+    let keys = $.QueryString.key?.split?.(',');
     if (!shows) {
         data.error = "Missing the 'show' param";
         return;
     }
-    if (keys && shows.length != keys.length) {
+    if (keys && shows.length !== keys.length) {
         data.error = "The number of ids in 'show' doesn't match the number of keys in 'key' params";
         return;
     }
@@ -88,11 +95,4 @@ function main()
     shows.forEach(function (id, idx) {
         data.sensors.push(new SensorData(id, keys[idx]))
     })
-
-    console.log(location);
-    console.log($.QueryString.show);
-
-    console.log($.QueryString.key);
-
-
 }

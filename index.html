@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="purp.css">
 
     <script type="text/javascript" src="utils.js"></script>
+    <script type="text/javascript" src="purple_air_api.js"></script>
     <script type="text/javascript" src="purp.js"></script>
 
 </head>
@@ -31,14 +32,22 @@
             <tr>
                 <th>ID</th>
                 <th>Name</th>
+                <th>AQI</th>
                 <th>Results</th>
             </tr>
             <tr v-for="s in sensors">
                 <td v-if="!s.error">{{ s.id }}</td>
-                <td v-if="!s.error">{{ s.results?.name }}</td>
+                <td v-if="!s.error">
+                    {{ s.results?.Label }}
+                    <br/>
+                    ({{ s.results?.DEVICE_LOCATIONTYPE }})
+                </td>
+                <td v-if="!s.error">
+                    {{ s.getAQI() }}
+                </td>
                 <td v-if="!s.error">{{ s.results }}</td>
 
-                <td v-if="s.error" colspan="3" class="error">{{ s.error }}</td>
+                <td v-if="s.error" colspan="4" class="error">{{ s.error }}</td>
             </tr>
         </table>
     </div>
