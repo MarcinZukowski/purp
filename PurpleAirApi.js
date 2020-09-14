@@ -59,11 +59,13 @@ class PurpleAirApi {
 
     static aqiColor(aqi)
     {
-
         let gray = "#aaa";
         if (isNaN(aqi)) {
             return gray;
         }
+
+        if (aqi > 300)
+            aqi = 300;
         return this.gradient.rgbAt(aqi / 300);
     }
 
