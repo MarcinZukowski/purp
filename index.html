@@ -57,7 +57,7 @@
                         </tr>
                     </table>
                 </td>
-                <td v-if="!s.error">{{ s.results }}</td>
+                <td v-if="!s.error" class="raw-data">{{ s.results }}</td>
 
                 <td v-if="s.error" colspan="4" class="error">{{ s.error }}</td>
             </tr>

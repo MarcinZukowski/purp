@@ -35,13 +35,17 @@ td,th {
     white-space: nowrap;
 }
 
+td.raw-data {
+    font-size: 10pt;
+}
+
 .stat-label {
-    font-size: 10px;
+    font-size: 12px;
 }
 .stat-aqi {
     font-size: 16px;
     font-weight: bold;
 }
 .stat-pm {
-    font-size: 8px;
+    font-size: 10px;
 }
