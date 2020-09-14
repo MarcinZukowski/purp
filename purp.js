@@ -1,12 +1,19 @@
-let statsInfo = [
-    ["v", "Real Time"],
-    ["v1", "10 min"],
-    ["v2", "30 min"],
-    ["v3", "1 hour"],
-    ["v4", "6 hour"],
-    ["v5", "1 day"],
-    ["v6", "1 week"],
+let _statsInfo = [
+    ["v",      0, "Real Time"],
+    ["v1",    10, "10 min"],
+    ["v2",    30, "30 min"],
+    ["v3",    60, "1 hour"],
+    ["v4",   360, "6 hour"],
+    ["v5",  1440, "1 day"],
+    ["v6", 10080, "1 week"],
 ]
+let statsInfo = _statsInfo.map(v => {
+    return {
+        key: v[0],
+        minutes: v[1],
+        label: v[2],
+    };
+});
 
 var app = null;
 var data = {
