@@ -1,4 +1,6 @@
 class PurpleAirApi {
+    static gradient = this.generateGradient();
+
     static getSensorData(sensor)
     {
         let url = `https://www.purpleair.com/json?show=${sensor.id}&key=${sensor.key}`;
@@ -7,16 +9,68 @@ class PurpleAirApi {
             type: "GET",
             url: url,
             processData: false,
-            error: function(sensor) { sensor.error = "Can't load data" }.bind(this, sensor),
+            error: function(sensor) { sensor.raiseError("Can't load data"); }.bind(this, sensor),
             success: sensor.consumeData.bind(sensor)
         });
+    }
+
+    static getSensorTimeline(sensor)
+    {
+        let channel = sensor.results.THINGSPEAK_PRIMARY_ID;
+        let api_key = sensor.results.THINGSPEAK_PRIMARY_ID_READ_KEY;
+        let field = 2;
+        let start = "2020-09-12%2000:54:08";
+        let average = 60;
+
+        let url = `https://api.thingspeak.com/channels/${channel}/fields/${field}.json?start=${start}&offset=0&round=2&average=${average}&api_key=${api_key}`
+
+        $.ajax({
+            type: "GET",
+            url: url,
+            processData: false,
+            error: function(sensor) { sensor.raiseError("Can't load timeline data"); }.bind(this, sensor),
+            success: sensor.consumeTimelineData.bind(sensor)
+        });
+    }
+
+    static generateGradient()
+    {
+        function rgb(r, g, b) {
+            let comp = val => "0".concat(val.toString(16)).substr(-2,2);
+            return "#" + comp(r) + comp(g) + comp(b);
+        }
+
+        let colors = [
+            [    0,  rgb(104,225,67)],
+            [   50,  rgb(255,255,85)],
+            [  100,  rgb(239,133,51)],
+            [  150,  rgb(234,51,36)],
+            [  200,  rgb(140,26,75)],
+            [  300,  rgb(115,20,37)],
+        ];
+        let gradient_colors = colors.map(v => {
+            return {
+                color: v[1],
+                pos: v[0] / 300
+            }
+        });
+        return tinygradient(gradient_colors);
+    }
+
+    static aqiColor(aqi)
+    {
+
+        let gray = "#aaa";
+        if (isNaN(aqi)) {
+            return gray;
+        }
+        return this.gradient.rgbAt(aqi / 300);
     }
 
     // Verbatim pasted from https://docs.google.com/document/d/15ijz94dXJ-YAZLi9iZ_RaBwrZ4KtYeCy08goGBwnbCU/edit
     // Only changed "function" to "static"
 
     static aqiFromPM(pm) {
-
         if (isNaN(pm)) return "-";
         if (pm == undefined) return "-";
         if (pm < 0) return pm;

@@ -5,6 +5,9 @@
     <title>Purp!</title>
 
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinycolor/1.4.1/tinycolor.min.js" integrity="sha512-RozPeKxKPtXNqvICs7iMDchhJmypo89PxwY6poaAa7TyED7PgwPbBcsAhLwzcEQf/kRwbOnYRvSezQ5CMqHjIA==" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/tinygradient@1.1.2/browser.min.js"></script>
+
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
 
     <!-- development version, includes helpful console warnings
@@ -17,7 +20,8 @@
     <link rel="stylesheet" href="purp.css">
 
     <script type="text/javascript" src="utils.js"></script>
-    <script type="text/javascript" src="purple_air_api.js"></script>
+    <script type="text/javascript" src="PurpleAirApi.js"></script>
+    <script type="text/javascript" src="SensorData.js.js"></script>
     <script type="text/javascript" src="purp.js"></script>
 
 </head>
@@ -42,7 +46,7 @@
                     <br/>
                     ({{ s.results?.DEVICE_LOCATIONTYPE }})
                 </td>
-                <td v-if="!s.error">
+                <td v-if="!s.error" :style="{background: s.getAQIColor()}">
                     {{ s.getAQI() }}
                 </td>
                 <td v-if="!s.error">{{ s.results }}</td>

@@ -6,46 +6,6 @@ var data = {
     sensors: [],
 };
 
-class SensorData{
-    results;
-    error;
-
-    toString()
-    {
-        return `SensorData(id=${this.id}, key=${this.key}, results=${this.results}, error=${this.error})`;
-    }
-
-    constructor(id, key)
-    {
-        this.id = id;
-        this.key = key;
-        fun(`Created ${this}`);
-
-        PurpleAirApi.getSensorData(this);
-    }
-
-    clearError()
-    {
-        this.error = null;
-    }
-
-    consumeData(data)
-    {
-        fun(data);
-        this.clearError();
-        this.results = data.results[0];
-    }
-
-    getAQI()
-    {
-        if (this.results) {
-            return PurpleAirApi.aqiFromPM(1.0 * this.results.PM2_5Value);
-        } else {
-            return "?";
-        }
-
-    }
-}
 
 function main()
 {
