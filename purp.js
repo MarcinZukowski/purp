@@ -44,6 +44,6 @@ function main()
     }
 
     shows.forEach(function (id, idx) {
-        data.sensors.push(new SensorData(id, keys[idx]))
+        data.sensors.push(new SensorData(id, keys?.[idx]))
     })
 }
