@@ -21,7 +21,7 @@
 
     <script type="text/javascript" src="utils.js"></script>
     <script type="text/javascript" src="PurpleAirApi.js"></script>
-    <script type="text/javascript" src="SensorData.js.js"></script>
+    <script type="text/javascript" src="SensorData.js"></script>
     <script type="text/javascript" src="purp.js"></script>
 
 </head>
@@ -46,8 +46,16 @@
                     <br/>
                     ({{ s.results?.DEVICE_LOCATIONTYPE }})
                 </td>
-                <td v-if="!s.error" :style="{background: s.getAQIColor()}">
-                    {{ s.getAQI() }}
+                <td v-if="!s.error" class="aqi">
+                    <table>
+                        <tr>
+                            <td v-for="si in statsInfo" :style="{background: s.getStat(si)?.color}">
+                                <div class="stat-label">{{s.getStat(si)?.label}}</div>
+                                <div class="stat-aqi">{{s.getStat(si)?.aqi}}</div>
+                                <div class="stat-pm">{{s.getStat(si)?.pm}} µg/m3</div>
+                            </td>
+                        </tr>
+                    </table>
                 </td>
                 <td v-if="!s.error">{{ s.results }}</td>
 

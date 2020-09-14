@@ -24,3 +24,24 @@ td,th {
     border: 1px solid black;
     padding: 3px;
 }
+
+.aqi table, .aqi tr {
+    border: 0px solid black;
+}
+.aqi td {
+    border: 1px solid black;
+    height: 100%;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.stat-label {
+    font-size: 10px;
+}
+.stat-aqi {
+    font-size: 16px;
+    font-weight: bold;
+}
+.stat-pm {
+    font-size: 8px;
+}

@@ -1,11 +1,21 @@
+let statsInfo = [
+    ["v", "Real Time"],
+    ["v1", "10 min"],
+    ["v2", "30 min"],
+    ["v3", "1 hour"],
+    ["v4", "6 hour"],
+    ["v5", "1 day"],
+    ["v6", "1 week"],
+]
+
 var app = null;
 var data = {
     error: null,
     title: 'Purp?',
     message: 'Hello Vue!!??!?!',
     sensors: [],
+    statsInfo: statsInfo
 };
-
 
 function main()
 {

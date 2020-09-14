@@ -56,4 +56,22 @@ class SensorData{
         let aqi = this.getAQI();
         return PurpleAirApi.aqiColor(aqi);
     }
+
+    getStat(si)
+    {
+        if (!this.results) {
+            return null;
+        }
+        console.log(`results=${JSON.stringify(this.results.Stats)}`)
+        let stats = JSON.parse(this.results.Stats);
+        let pm = 1.0 * stats[si[0]];
+        let aqi = PurpleAirApi.aqiFromPM(pm);
+        let color = PurpleAirApi.aqiColor(aqi)
+        return {
+            label: si[1],
+            aqi: aqi,
+            pm: pm,
+            color: color
+        }
+    }
 }
