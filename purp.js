@@ -6,32 +6,6 @@ var data = {
     sensors: [],
 };
 
-class PurpleAPI {
-
-    /** Set headers necessary for accessing PurpleAir */
-    static setHeaders(request)
-    {
-//        request.setRequestHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, Cookie");
-//        request.setRequestHeader("Access-Control-Allow-Origin", "*");
-//        request.setRequestHeader("Content-Type", "application/json");
-//        request.setRequestHeader("Accept", "application/json");
-    }
-
-    static getSensorData(sensor)
-    {
-        let url = `https://www.purpleair.com/json?show=${sensor.id}&key=${sensor.key}`;
-
-        $.ajax({
-            type: "GET",
-            beforeSend: this.setHeaders,
-            url: url,
-            processData: false,
-            error: function(sensor) { sensor.error = "Can't load data" }.bind(this, sensor),
-            success: sensor.consumeData.bind(sensor)
-        });
-    }
-}
-
 class SensorData{
     results;
     error;
@@ -47,7 +21,7 @@ class SensorData{
         this.key = key;
         fun(`Created ${this}`);
 
-        PurpleAPI.getSensorData(this);
+        PurpleAirApi.getSensorData(this);
     }
 
     clearError()
