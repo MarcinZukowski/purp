@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <title>Purp!</title>
 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tinycolor/1.4.1/tinycolor.min.js" integrity="sha512-RozPeKxKPtXNqvICs7iMDchhJmypo89PxwY6poaAa7TyED7PgwPbBcsAhLwzcEQf/kRwbOnYRvSezQ5CMqHjIA==" crossorigin="anonymous"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/tinygradient@1.1.2/browser.min.js"></script>
 
-    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
 
     <!-- development version, includes helpful console warnings
     -->
@@ -58,7 +60,13 @@
                         </tr>
                     </table>
                 </td>
-                <td v-if="!s.error" class="raw-data">{{ s.results }}</td>
+                <td v-if="!s.error" class="raw-data">
+                    <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#demo">Show raw data</button>
+                    <div id="demo" class="collapse">
+                        {{ s.results }}
+                    </div>
+
+                </td>
 
                 <td v-if="s.error" colspan="4" class="error">{{ s.error }}</td>
             </tr>
