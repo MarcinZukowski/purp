@@ -52,6 +52,8 @@
                     {{ s.results?.Label }}
                     <br/>
                     ({{ s.results?.DEVICE_LOCATIONTYPE }})
+                    <br/>
+                    <div class="stat-map"><a v-bind:href="s.getMapURL()"><img src="img/map-small.png"/></a></div>
                 </td>
                 <td v-if="!s.error" class="aqi">
                     <table>

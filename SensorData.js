@@ -67,10 +67,7 @@ class SensorData{
         let pm = 1.0 * stats[si.key];
         let aqi = PurpleAirApi.aqiFromPM(pm);
         let color = PurpleAirApi.aqiColor(aqi)
-        let zoom = 17;
-        let lat = this.results.Lat;
-        let lon = this.results.Lon;
-        let map = `https://www.purpleair.com/map?opt=1/mAQI/a${si.minutes}/cC0&key=${this.key}&select=${this.id}#${zoom}/${lat}/${lon}`
+        let map = this.getMapURL(si.minutes);
         return {
             label: si.label,
             aqi: aqi,
@@ -83,5 +80,19 @@ class SensorData{
     getInfoURL()
     {
         return `https://www.purpleair.com/sensorlist?show=${this.id}&key=${this.key}`;
+    }
+
+    getMapURL(minutes)
+    {
+        if (!this.results) {
+            return null;
+        }
+        if (isNaN(minutes)) {
+            minutes = 10;
+        }
+        let zoom = 17;
+        let lat = this.results.Lat;
+        let lon = this.results.Lon;
+        return `https://www.purpleair.com/map?opt=1/mAQI/a${minutes}/cC0&key=${this.key}&select=${this.id}#${zoom}/${lat}/${lon}`
     }
 }
