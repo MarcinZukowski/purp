@@ -24,13 +24,13 @@ function fun(text, level)
     if (text == null)
         text = "";
 
-    let func = arguments.callee.caller || "?";
-    while (level > 1) {
+    let func = arguments.callee.caller;
+    while (func && level > 1) {
         func = func.arguments.callee.caller;
         level--;
     }
-    const name = func.name;
-    console.log("SNOVI " + name + ": " + text)
+    const name = func?.name || "?";
+    console.log("PURP::" + name + ": " + text)
 }
 
 // Like fun(), but log JSON objects
