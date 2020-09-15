@@ -63,7 +63,6 @@ class PurpleAirApi {
             }
         });
         boundaries.forEach((v,i, a) => a[i].high = a[i + 1]?.low || 1000);
-        funj(boundaries);
         return boundaries;
     }
 
