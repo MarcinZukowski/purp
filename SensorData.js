@@ -136,7 +136,7 @@ class SensorData{
                 },
                 position:'center'
             },
-            legend_visible: true,
+            legend_visible: false,
             annotations:[
                 {
                     label_text:'Data from PurpleAir',
@@ -153,10 +153,16 @@ class SensorData{
                 markers: PurpleAirApi.boundaries.map(v => {
                     return {
                         value: [v.low, v.high],
-                        color: [v.color, 0.5],
+                        color: [v.color, 0.7],
                         label_text: v.label,
                     }
                 }),
+                defaultTick:{
+                    enabled: false,
+                    label_text: '%Value',
+                    line_width: 2
+                },
+                customTicks: PurpleAirApi.boundaries.map(v => v.low),
             },
             xAxis:[
                 {

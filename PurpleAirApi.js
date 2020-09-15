@@ -49,7 +49,11 @@ class PurpleAirApi {
             [  150,  rgb(234,51,36),  "Unhealthy"],
             [  200,  rgb(140,26,75),  "Very Unhealthy"],
             [  300,  rgb(115,20,37),  "Hazardous"],
-        ]
+            [  500,  rgb(65,0,25),  "Here be monsters"],
+            [  1000,  rgb(65,0,25),  ""],
+        ];
+        this.boundaries_max = 1000;
+
 
         let boundaries = boundary_data.map(v => {
             return {
@@ -58,7 +62,7 @@ class PurpleAirApi {
                 label: v[2]
             }
         });
-        boundaries.forEach((v,i, a) => a[i].high = a[i + 1]?.low || 500);
+        boundaries.forEach((v,i, a) => a[i].high = a[i + 1]?.low || 1000);
         funj(boundaries);
         return boundaries;
     }
@@ -73,7 +77,7 @@ class PurpleAirApi {
         let gradient_colors = this.boundaries.map(v => {
             return {
                 color: v.color,
-                pos: v.low / 300
+                pos: v.low / this.boundaries_max
             }
         });
         return tinygradient(gradient_colors);
@@ -86,9 +90,8 @@ class PurpleAirApi {
             return gray;
         }
 
-        if (aqi > 300)
-            aqi = 300;
-        return this.gradient.rgbAt(aqi / 300);
+        aqi = Math.min(aqi, this.boundaries_max)
+        return this.gradient.rgbAt(aqi / this.boundaries_max);
     }
 
     // Verbatim pasted from https://docs.google.com/document/d/15ijz94dXJ-YAZLi9iZ_RaBwrZ4KtYeCy08goGBwnbCU/edit
