@@ -1,4 +1,7 @@
 class PurpleAirApi {
+
+    static boundaries = this.generateBoundaries();
+
     static gradient = this.generateGradient();
 
     static getSensorData(sensor)
@@ -32,6 +35,33 @@ class PurpleAirApi {
             success: sensor.consumeTimelineData.bind(sensor)
         });
     }
+    static generateBoundaries()
+    {
+        function rgb(r, g, b) {
+            let comp = val => "0".concat(val.toString(16)).substr(-2,2);
+            return "#" + comp(r) + comp(g) + comp(b);
+        }
+
+        let boundary_data = [
+            [    0,  rgb(104,225,67), "Good"],
+            [   50,  rgb(255,255,85), "Moderate"],
+            [  100,  rgb(239,133,51), "Unhealthy for S.G."],
+            [  150,  rgb(234,51,36),  "Unhealthy"],
+            [  200,  rgb(140,26,75),  "Very Unhealthy"],
+            [  300,  rgb(115,20,37),  "Hazardous"],
+        ]
+
+        let boundaries = boundary_data.map(v => {
+            return {
+                low: v[0],
+                color: v[1],
+                label: v[2]
+            }
+        });
+        boundaries.forEach((v,i, a) => a[i].high = a[i + 1]?.low || 500);
+        funj(boundaries);
+        return boundaries;
+    }
 
     static generateGradient()
     {
@@ -40,18 +70,10 @@ class PurpleAirApi {
             return "#" + comp(r) + comp(g) + comp(b);
         }
 
-        let colors = [
-            [    0,  rgb(104,225,67)],
-            [   50,  rgb(255,255,85)],
-            [  100,  rgb(239,133,51)],
-            [  150,  rgb(234,51,36)],
-            [  200,  rgb(140,26,75)],
-            [  300,  rgb(115,20,37)],
-        ];
-        let gradient_colors = colors.map(v => {
+        let gradient_colors = this.boundaries.map(v => {
             return {
-                color: v[1],
-                pos: v[0] / 300
+                color: v.color,
+                pos: v.low / 300
             }
         });
         return tinygradient(gradient_colors);

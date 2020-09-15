@@ -28,7 +28,6 @@ class SensorData{
 
     consumeData(data)
     {
-        fun(data);
         this.clearError();
         this.results = data.results[0];
 
@@ -37,9 +36,10 @@ class SensorData{
 
     consumeTimelineData(data)
     {
-        fun(data);
         this.clearError();
-        this.results.timeline = data;
+        Vue.set(this.results, "timeline", data);
+
+        this.drawChart();
     }
 
     getAQI()
@@ -106,5 +106,78 @@ class SensorData{
     getTempURL()
     {
         return this.getMapURL(10, "TEMP");
+    }
+
+    drawChart()
+    {
+        let divId = 'chart-' + this.key;
+
+        // Shared line settings
+        let line = {
+            width: 3,
+            caps: { end_type:'arrow', },
+        };
+
+        let chart = JSC.chart(divId,{
+            debug: true,
+            type: 'line',
+            toolbar: {
+                items: {
+                    Refresh: {
+                        // TODO
+                    },
+                }
+            },
+            axisToZoom: 'x',
+            title:{
+                label:{
+                    text: 'AQI over time',
+                    style_fontSize: 16
+                },
+                position:'center'
+            },
+            legend_visible: true,
+            annotations:[
+                {
+                    label_text:'Data from PurpleAir',
+                    position:'inside top',
+                    fill:['white', .5],
+                    margin:[10, 10],
+                }
+            ],
+            defaultAxis_label_style_fontWeight:'bold',
+            yAxis:{
+                label_text:'AQI',
+                scale_interval:50,
+                line: line,
+                markers: PurpleAirApi.boundaries.map(v => {
+                    return {
+                        value: [v.low, v.high],
+                        color: [v.color, 0.5],
+                        label_text: v.label,
+                    }
+                }),
+            },
+            xAxis:[
+                {
+                    line: line,
+                    label_text:'Time',
+                    scale_type: 'time',
+                    formatString: 'MMM dd, HH:mm'
+                }
+            ],
+//            defaultPoint_tooltip: '%xValue<br/>%yValue',
+            series: [
+                {
+                    name: 'AQI over time',
+                    defaultPoint_marker_visible: true,
+                    mouseTracking_enabled: true,
+                    line_width:2,
+                    points: this.results.timeline.feeds.map(
+                        v => [v.created_at, PurpleAirApi.aqiFromPM(v.field2)]
+                    )
+                },
+            ]
+        });
     }
 }

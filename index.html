@@ -13,12 +13,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tinycolor/1.4.1/tinycolor.min.js" integrity="sha512-RozPeKxKPtXNqvICs7iMDchhJmypo89PxwY6poaAa7TyED7PgwPbBcsAhLwzcEQf/kRwbOnYRvSezQ5CMqHjIA==" crossorigin="anonymous"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/tinygradient@1.1.2/browser.min.js"></script>
 
+
     <!-- development version, includes helpful console warnings
     -->
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <!-- production version, optimized for size and speed
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
     -->
+
+    <script src="https://code.jscharting.com/latest/jscharting.js"></script>
 
     <link rel="stylesheet" href="purp.css">
 
@@ -72,13 +75,15 @@
                             </td>
                         </tr>
                     </table>
+                    <div v-bind:id="'chart-' + s.key" style="max-width: 100%; height: 400px;margin: 0px auto">
+                        bla
+                    </div>
                 </td>
                 <td v-if="!s.error" class="raw-data">
                     <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#demo">Show raw data</button>
                     <div id="demo" class="collapse">
                         {{ s.results }}
                     </div>
-
                 </td>
 
                 <td v-if="s.error" colspan="5" class="error">{{ s.error }}</td>
