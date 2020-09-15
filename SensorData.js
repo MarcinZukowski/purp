@@ -164,19 +164,21 @@ class SensorData{
                 },
                 customTicks: PurpleAirApi.boundaries.map(v => v.low),
             },
-            xAxis:[
-                {
-                    line: line,
-                    label_text:'Time',
-                    scale_type: 'time',
-                    formatString: 'MMM dd, HH:mm'
-                }
-            ],
+            xAxis: {
+                line: line,
+                label_text:'Time',
+                scale_type: 'time',
+                formatString: 'HH:mm<br/>MMM dd'
+            },
 //            defaultPoint_tooltip: '%xValue<br/>%yValue',
             series: [
                 {
                     name: 'AQI over time',
-                    defaultPoint_marker_visible: true,
+                    defaultPoint: {
+                        marker_visible: false,
+                        focusGlow: {width: 5, color: "black"},
+                        color: "red",
+                    },
                     mouseTracking_enabled: true,
                     line_width:2,
                     points: this.results.timeline.feeds.map(
