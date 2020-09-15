@@ -45,7 +45,7 @@
                 <th>Name</th>
                 <th>Temperature</th>
                 <th>AQI</th>
-                <th>Results</th>
+                <th>Status</th>
             </tr>
             <tr v-for="s in sensors">
                 <td v-if="!s.error">
@@ -80,13 +80,15 @@
                         bla
                     </div>
                 </td>
-                <td v-if="!s.error" class="raw-data">
+                <td v-if="!s.error" class="status">
+                    <div id="status">
+                        Status: {{ s.currentStatus }}
+                    </div>
                     <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#demo">Show raw data</button>
-                    <div id="demo" class="collapse">
+                    <div id="demo" class="collapse raw-data">
                         {{ s.results }}
                     </div>
                 </td>
-
                 <td v-if="s.error" colspan="5" class="error">{{ s.error }}</td>
             </tr>
         </table>

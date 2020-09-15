@@ -1,6 +1,7 @@
 class SensorData{
     results;
     error;
+    currentStatus = "initializing"
 
     toString()
     {
@@ -12,6 +13,8 @@ class SensorData{
         this.id = id;
         this.key = key;
         fun(`Created ${this}`);
+
+        this.currentStatus = "Loading sensor data"
 
         PurpleAirApi.getSensorData(this);
     }
@@ -31,6 +34,7 @@ class SensorData{
         this.clearError();
         this.results = data.results[0];
 
+        this.currentStatus = "Loading sensor timeline"
         PurpleAirApi.getSensorTimeline(this);
     }
 
@@ -39,7 +43,9 @@ class SensorData{
         this.clearError();
         Vue.set(this.results, "timeline", data);
 
+        this.currentStatus = "Drawing chart";
         this.drawChart();
+        this.currentStatus = "Ready";
     }
 
     getAQI()
