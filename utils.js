@@ -42,3 +42,20 @@ function funj(j, varname) {
 
     fun(string, 2);
 }
+
+function log(text)
+{
+    // Log to console
+    console.log(text);
+
+    // Log to our div
+    let elem = $("#log");
+    if (elem) {
+        let dateStr = new Date().toISOString();
+        elem.append(`[${dateStr}] ${text}<br/>`);
+        // Scroll to bottom
+        let dom = elem[0];
+        dom.scrollTop = dom.scrollHeight;
+
+    }
+}

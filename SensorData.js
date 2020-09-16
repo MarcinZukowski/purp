@@ -14,8 +14,19 @@ class SensorData{
         this.key = key;
         fun(`Created ${this}`);
 
-        this.currentStatus = "Loading sensor data"
+        this.setStatus("Loading sensor data");
 
+        this.loadData();
+    }
+
+    setStatus(text)
+    {
+        this.currentStatus = text;
+        log(`[Sensor #${this.key}] ${this.currentStatus}`);
+    }
+
+    loadData()
+    {
         PurpleAirApi.getSensorData(this);
     }
 
@@ -34,7 +45,7 @@ class SensorData{
         this.clearError();
         this.results = data.results[0];
 
-        this.currentStatus = "Loading sensor timeline"
+        this.setStatus("Loading sensor timeline");
         PurpleAirApi.getSensorTimeline(this);
     }
 
@@ -43,9 +54,9 @@ class SensorData{
         this.clearError();
         Vue.set(this.results, "timeline", data);
 
-        this.currentStatus = "Drawing chart";
+        this.setStatus("Drawing chart");
         this.drawChart();
-        this.currentStatus = "Ready";
+        this.setStatus("Ready");
     }
 
     getAQI()
@@ -68,7 +79,6 @@ class SensorData{
         if (!this.results) {
             return null;
         }
-        console.log(`results=${JSON.stringify(this.results.Stats)}`)
         let stats = JSON.parse(this.results.Stats);
         let pm = 1.0 * stats[si.key];
         let aqi = PurpleAirApi.aqiFromPM(pm);
