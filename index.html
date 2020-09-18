@@ -47,25 +47,27 @@
                 <th>AQI</th>
                 <th>Status</th>
             </tr>
-            <tr v-for="s in sensors">
-                <td v-if="!s.error">
+        <tbody v-for="s in sensors">
+
+            <tr v-if="!s.error">
+                <td>
                     {{ s.id }}
                     <br>
                     <a v-bind:href="s.getInfoURL()"><img src="img/info-small.png"/></a>
                 </td>
-                <td v-if="!s.error">
+                <td>
                     {{ s.results?.Label }}
                     <br/>
                     ({{ s.results?.DEVICE_LOCATIONTYPE }})
                     <br/>
                     <div class="stat-map"><a v-bind:href="s.getMapURL()"><img src="img/map-small.png"/></a></div>
                 </td>
-                <td v-if="!s.error" class="temp">
+                <td class="temp">
                     {{ s.getTempF() }} °F
                     <br/>
                     <div class="stat-map"><a v-bind:href="s.getTempURL()"><img src="img/map-small.png"/></a></div>
                 </td>
-                <td v-if="!s.error" class="aqi">
+                <td class="aqi">
                     <table>
                         <tr>
                             <td v-for="si in statsInfo" v-bind:style="{background: s.getStat(si)?.color, color: s.getStat(si)?.text}">
@@ -79,7 +81,7 @@
                         bla
                     </div>
                 </td>
-                <td v-if="!s.error" class="status">
+                <td class="status" rowspan="2">
                     <div id="status">
                         Status: {{ s.currentStatus }}
                     </div>
@@ -88,8 +90,28 @@
                         {{ s.results }}
                     </div>
                 </td>
+            </tr>
+            <tr v-if="!s.error" class="neighbors">
+                <td colspan="3">
+                    Nearby ({{s.getNearbyStat(si)?.count || 0}} devices in {{s.getNearbyStat(si)?.miles || "?"}} mile radius)
+                </td>
+                <td>
+                    <table>
+                        <tr>
+                            <td v-for="si in statsInfo" v-bind:style="{background: s.getStat(si)?.color, color: s.getStat(si)?.text}">
+                                <div class="stat-label">{{s.getNearbyStat(si)?.label}}</div>
+                                <div class="stat-aqi">{{s.getNearbyStat(si)?.aqi}}</div>
+                                <div class="stat-pm">{{s.getNearbyStat(si)?.pm}} µg/m3</div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr v-if="s.error">
                 <td v-if="s.error" colspan="5" class="error">{{ s.error }}</td>
             </tr>
+        </tbody>
+
         </table>
     </div>
 

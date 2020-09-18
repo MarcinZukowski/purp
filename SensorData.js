@@ -3,6 +3,10 @@ class SensorData{
     error;
     currentStatus = "initializing"
 
+    START_BOX_SIZE = 4000;
+    MAX_BOX_SIZE = 32000; // meters
+    MIN_NEIGHBOR_COUNT = 5;
+
     toString()
     {
         return `SensorData(id=${this.id}, key=${this.key}, results=${this.results}, error=${this.error})`;
@@ -43,6 +47,9 @@ class SensorData{
     consumeData(data)
     {
         this.clearError();
+        let results = data.results[0];
+
+        results.nearby = {}
         this.results = data.results[0];
 
         this.setStatus("Loading sensor timeline");
@@ -57,6 +64,28 @@ class SensorData{
         this.setStatus("Drawing chart");
         this.drawChart();
         this.setStatus("Ready");
+
+        this.loadNeighbors(this.START_BOX_SIZE);
+    }
+
+    loadNeighbors(box_meters)
+    {
+        log(`Looking for neighbors in the ${box_meters} meters box`);
+        PurpleAirApi.findNeighbors(this.results.Lat, this.results.Lon, box_meters,
+            this.consumeNeighborData.bind(this, box_meters),
+            this.setStatus.bind(this, "ERROR: Can't load neighbors"));
+    }
+
+    consumeNeighborData(box_meters, data)
+    {
+        log(`Got data: ${data}`);
+        log(JSON.stringify(data));
+        log(`Found ${data.count} neighbors in the box of ${box_meters} meters`);
+        if (data.count < this.MIN_NEIGHBOR_COUNT && box_meters * 2 < this.MAX_BOX_SIZE) {
+            this.loadNeighbors(box_meters * 2);
+        } else {
+            log("OK");
+        }
     }
 
     getAQI()
@@ -93,6 +122,12 @@ class SensorData{
             text: text,
             map: map,
         }
+    }
+
+    getNearbyStat(si)
+    {
+        let count = 0;
+        return "?";
     }
 
     getInfoURL()

@@ -135,6 +135,16 @@ class PurpleAirApi {
         return this.gradient.rgbAt(aqi / this.boundaries_max);
     }
 
+    static findNeighbors(lat, lon, box_meters, callback_ok, callback_error)
+    {
+        let box = computeLatLonBox(lat, lon, box_meters);
+        let url = `https://www.purpleair.com/data.json?opt=1/mAQI/a0/cC0&fetch=true&` +
+            `nwlat=${box.nwlat}&selat=${box.selat}&nwlng=${box.nwlon}&selng=${box.selon}&fields=pm_0`;
+
+        this.makeTheCall(url, callback_error, callback_ok);
+    }
+
+
     // Verbatim pasted from https://docs.google.com/document/d/15ijz94dXJ-YAZLi9iZ_RaBwrZ4KtYeCy08goGBwnbCU/edit
     // Only changed "function" to "static"
 
