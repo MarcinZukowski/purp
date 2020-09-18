@@ -69,10 +69,9 @@
                     <table>
                         <tr>
                             <td v-for="si in statsInfo" v-bind:style="{background: s.getStat(si)?.color, color: s.getStat(si)?.text}">
-                                <div class="stat-label">{{s.getStat(si)?.label}}</div>
+                                <div class="stat-map" style="float: right"><a v-bind:href="s.getStat(si)?.map"><img src="img/map-small.png"/></a></div><div class="stat-label">{{s.getStat(si)?.label}}</div>
                                 <div class="stat-aqi">{{s.getStat(si)?.aqi}}</div>
                                 <div class="stat-pm">{{s.getStat(si)?.pm}} µg/m3</div>
-                                <div class="stat-map"><a v-bind:href="s.getStat(si)?.map"><img src="img/map-small.png"/></a></div>
                             </td>
                         </tr>
                     </table>
