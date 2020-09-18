@@ -59,3 +59,20 @@ function log(text)
 
     }
 }
+
+function computeLatLonBox(lat, lon, box_meters)
+{
+    const r_earth = 6371008;  // mean radius according to IUGG
+    const pi = Math.PI;
+    let delta = box_meters / 2;
+    let nwlat = lat + (delta / r_earth) * (180 / pi);
+    let selat = lat - (delta / r_earth) * (180 / pi);
+    let nwlon = lon - (delta / r_earth) * (180 / pi) / Math.cos(lat * pi/180);
+    let selon = lon + (delta / r_earth) * (180 / pi) / Math.cos(lat * pi/180);
+    return {
+        nwlat: nwlat,
+        selat: selat,
+        nwlon: nwlon,
+        selon: selon,
+    }
+}
