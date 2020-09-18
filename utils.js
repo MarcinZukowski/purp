@@ -76,3 +76,9 @@ function computeLatLonBox(lat, lon, box_meters)
         selon: selon,
     }
 }
+
+function run_delayed(delay, func)
+{
+    log(`Running with ${delay} ms delay: ${func}`);
+    setTimeout(func, delay);
+}

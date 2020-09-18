@@ -1,5 +1,7 @@
 class PurpleAirApi {
 
+    static CALL_DELAY = 500; // URL call delay, hopefully to reduce throttling
+
     static boundaries = this.generateBoundaries();
 
     static gradient = this.generateGradient();
@@ -7,14 +9,10 @@ class PurpleAirApi {
     static getSensorData(sensor)
     {
         let url = `https://www.purpleair.com/json?show=${sensor.id}&key=${sensor.key}`;
+        let errorFunc = function(sensor) { sensor.raiseError("Can't load data"); }.bind(this, sensor);
+        let successFunc = sensor.consumeData.bind(sensor);
 
-        $.ajax({
-            type: "GET",
-            url: url,
-            processData: false,
-            error: function(sensor) { sensor.raiseError("Can't load data"); }.bind(this, sensor),
-            success: sensor.consumeData.bind(sensor)
-        });
+        this.makeTheCall(url, errorFunc, successFunc);
     }
 
     static getSensorTimeline(sensor)
@@ -26,15 +24,59 @@ class PurpleAirApi {
         let average = 10;
 
         let url = `https://api.thingspeak.com/channels/${channel}/fields/${field}.json?start=${start}&offset=0&round=2&average=${average}&api_key=${api_key}`
+        let errorFunc = function(sensor) { sensor.raiseError("Can't load timeline data"); }.bind(this, sensor);
+        let successFunc = sensor.consumeTimelineData.bind(sensor);
 
-        $.ajax({
-            type: "GET",
-            url: url,
-            processData: false,
-            error: function(sensor) { sensor.raiseError("Can't load timeline data"); }.bind(this, sensor),
-            success: sensor.consumeTimelineData.bind(sensor)
-        });
+        this.makeTheCall(url, errorFunc, successFunc);
     }
+
+    static makeTheCall(url, errorFunc, successFunc)
+    {
+        let startTime = Date.now();
+
+        function onSuccess(data)
+        {
+            let dur = Date.now() - startTime;
+            log(`Request succeeded in ${dur} ms, calling ${successFunc}`)
+            successFunc(data);
+        }
+        function onError(data)
+        {
+            log(`Handling call error, data: ${JSON.stringify(data)}`)
+            if (data.readyState == 4 && data.responseJSON.code == 429) {
+                // Possible throttling
+                let msg = data.responseJSON.message;
+                // Handle "Rate limit exceeded. Try again in XXX milli seconds."
+                let m = msg.match(/.*Try again in (\d+) milli.*/);
+                if (m && !isNaN(m[1])) {
+                    // Throttling detected
+                    log(`Detected throttle of ${m[1]} ms`)
+                    run_delayed(m[1], PurpleAirApi.makeTheCall.bind(this, url, errorFunc, successFunc));
+                    return;
+                }
+            }
+            if (data.readyState == 0) {
+                // Some weird error, retry
+                log("Error response, retrying");
+                run_delayed(1000, PurpleAirApi.makeTheCall.bind(this, url, errorFunc, successFunc));
+                return;
+            }
+            // Can't recover
+            log(`ERROR: ${data}`);
+            errorFunc(data);
+        }
+
+        log(`Calling PurpleAir URL: ${url}`);
+        run_delayed(this.CALL_DELAY, () =>
+            $.ajax({
+                type: "GET",
+                url: url,
+                processData: false,
+                error: onError.bind(this),
+                success: onSuccess.bind(this)
+            }));
+    }
+
     static generateBoundaries()
     {
         function rgb(r, g, b) {
