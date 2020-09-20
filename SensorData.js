@@ -169,13 +169,32 @@ class SensorData{
             caps: { end_type:'arrow', },
         };
 
+        function doZoom(ms)
+        {
+            log(`doZoom: ${ms}`);
+            chart.zoom([Date.now() - ms, 0, ms, 500]);
+        }
+        const SECOND = 1000;
+        const HOUR = 3600 * SECOND;
+        const DAY = 24 * HOUR;
+        const WEEK = 7 * DAY;
+
         let chart = JSC.chart(divId,{
             debug: true,
             type: 'line',
             toolbar: {
                 items: {
-                    Refresh: {
-                        // TODO
+                    "3 hours": {
+                        events_click: doZoom.bind(this, 3 * HOUR),
+                    },
+                    "1 day": {
+                        events_click: doZoom.bind(this, 1 * DAY),
+                    },
+                    "1 week": {
+                        events_click: doZoom.bind(this, 1 * WEEK),
+                    },
+                    "4 weeks": {
+                        events_click: doZoom.bind(this, 4 * WEEK),
                     },
                 }
             },
@@ -183,7 +202,7 @@ class SensorData{
             title:{
                 label:{
                     text: 'AQI over time',
-                    style_fontSize: 16
+                    style_fontSize: 14
                 },
                 position:'center'
             },
@@ -219,7 +238,7 @@ class SensorData{
                 line: line,
                 label_text:'Time',
                 scale_type: 'time',
-                formatString: 'HH:mm<br/>MMM dd'
+                formatString: 'HH:mm<br/>MMM dd yyyy'
             },
 //            defaultPoint_tooltip: '%xValue<br/>%yValue',
             series: [
