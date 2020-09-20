@@ -200,13 +200,6 @@ class SensorData{
                 }
             },
             axisToZoom: 'x',
-            title:{
-                label:{
-                    text: 'AQI over time',
-                    style_fontSize: 14
-                },
-                position:'center'
-            },
             legend_visible: false,
             annotations:[
                 {
