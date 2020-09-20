@@ -149,10 +149,10 @@ class PurpleAirApi {
     // Only changed "function" to "static"
 
     static aqiFromPM(pm) {
-        if (isNaN(pm)) return "-";
-        if (pm == undefined) return "-";
+        if (isNaN(pm)) return null;
+        if (pm == undefined) return null;
         if (pm < 0) return pm;
-        if (pm > 1000) return "-";
+        if (pm > 1000) return null;
         /*
               Good                              0 - 50         0.0 - 15.0         0.0 – 12.0
         Moderate                        51 - 100           >15.0 - 40        12.1 – 35.4
