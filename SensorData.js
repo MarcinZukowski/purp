@@ -65,7 +65,7 @@ class SensorData{
         this.drawChart();
         this.setStatus("Ready");
 
-        this.loadNeighbors(this.START_BOX_SIZE);
+//        this.loadNeighbors(this.START_BOX_SIZE);
     }
 
     loadNeighbors(box_meters)
@@ -258,4 +258,5 @@ class SensorData{
             ]
         });
     }
+
 }
