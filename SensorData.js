@@ -210,7 +210,6 @@ class SensorData{
             legend_visible: false,
             annotations:[
                 {
-                    label_text:'Data from PurpleAir',
                     position:'inside top',
                     fill:['white', .5],
                     margin:[10, 10],
