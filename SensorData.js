@@ -1,7 +1,8 @@
 class SensorData{
     results;
     error;
-    currentStatus = "initializing"
+    currentStatus = "initializing";
+    chart;
 
     START_BOX_SIZE = 4000;
     MAX_BOX_SIZE = 32000; // meters
@@ -169,17 +170,23 @@ class SensorData{
             caps: { end_type:'arrow', },
         };
 
-        function doZoom(ms)
+        function doZoom(ms, retry = true)
         {
             log(`doZoom: ${ms}`);
-            chart.zoom([Date.now() - ms, 0, ms, 0]);
+            if (this.chart) {
+                this.chart.zoom([Date.now() - ms, 0, ms, 0]);
+            } else {
+                log("...retrying");
+                run_delayed(1000, doZoom.bind(this, ms, false));
+
+            }
         }
         const SECOND = 1000;
         const HOUR = 3600 * SECOND;
         const DAY = 24 * HOUR;
         const WEEK = 7 * DAY;
 
-        let chart = JSC.chart(divId,{
+        this.chart = JSC.chart(divId,{
             debug: true,
             type: 'line',
             events_load: doZoom.bind(this, 1 * DAY),
