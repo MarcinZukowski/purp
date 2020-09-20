@@ -172,7 +172,7 @@ class SensorData{
         function doZoom(ms)
         {
             log(`doZoom: ${ms}`);
-            chart.zoom([Date.now() - ms, 0, ms, 500]);
+            chart.zoom([Date.now() - ms, 0, ms, 0]);
         }
         const SECOND = 1000;
         const HOUR = 3600 * SECOND;
@@ -182,6 +182,7 @@ class SensorData{
         let chart = JSC.chart(divId,{
             debug: true,
             type: 'line',
+            events_load: doZoom.bind(this, 1 * DAY),
             toolbar: {
                 items: {
                     "3 hours": {
@@ -238,7 +239,7 @@ class SensorData{
                 line: line,
                 label_text:'Time',
                 scale_type: 'time',
-                formatString: 'HH:mm<br/>MMM dd yyyy'
+                formatString: 'HH:mm<br/>MMM dd yyyy',
             },
 //            defaultPoint_tooltip: '%xValue<br/>%yValue',
             series: [

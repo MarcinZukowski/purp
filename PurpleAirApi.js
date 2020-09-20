@@ -20,7 +20,9 @@ class PurpleAirApi {
         let channel = sensor.results.THINGSPEAK_PRIMARY_ID;
         let api_key = sensor.results.THINGSPEAK_PRIMARY_ID_READ_KEY;
         let field = 2;
-        let start = "2020-09-12%2000:54:08";
+
+        let four_weeks = 1000 * 3600 * 24 * 7 * 4;
+        let start = new Date(Date.now() - four_weeks).toDateString();
         let average = 10;
 
         let url = `https://api.thingspeak.com/channels/${channel}/fields/${field}.json?start=${start}&offset=0&round=2&average=${average}&api_key=${api_key}`
