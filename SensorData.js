@@ -178,7 +178,6 @@ class SensorData{
             } else {
                 log("...retrying");
                 run_delayed(1000, doZoom.bind(this, ms, false));
-
             }
         }
         const SECOND = 1000;
