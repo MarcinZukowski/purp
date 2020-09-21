@@ -15,7 +15,9 @@ class SensorData{
     constructor(id, key)
     {
         this.id = id;
+        this.label = id;
         this.key = key;
+        this.color = tinycolor("#c00").spin(data.sensors.length * -100).toString();
         fun(`Created ${this}`);
     }
 
@@ -48,6 +50,8 @@ class SensorData{
 
         results.nearby = {}
         this.results = data.results[0];
+
+        this.label = results.Label;
 
         this.setStatus("Loading sensor timeline");
         PurpleAirApi.getSensorTimeline(this);
@@ -158,6 +162,12 @@ class SensorData{
 
     drawChart()
     {
+        this.drawChartHC();
+    }
+
+    // JSCharting
+    drawChartJSC()
+    {
         let divId = 'chart';
 
         // Shared line settings
@@ -262,4 +272,77 @@ class SensorData{
         });
     }
 
+    // HighChart
+    drawChartHC()
+    {
+        let divId = 'chart';
+
+        let series = [];
+        for (let idx = 0; idx < data.sensors.length; idx++) {
+            let sensor = data.sensors[idx];
+            if (!sensor.results?.timeline) {
+                continue;
+            }
+            series.push(
+                {
+                    name: sensor.label,
+                    defaultPoint: {
+                        marker_visible: false,
+                        focusGlow: {width: 5, color: "black"},
+                    },
+                    color: sensor.color,
+                    mouseTracking_enabled: true,
+                    line_width: idx == 0 ? 2 : 1,
+                    data: sensor.results.timeline.feeds.map(
+                        v => [new Date(v.created_at), PurpleAirApi.aqiFromPM(v.field2)]
+                    )
+                }
+            );
+        }
+
+        let plotBands = PurpleAirApi.boundaries.map(v => {
+            return {
+                from: v.low,
+                to: v.high,
+                color: `rgba(${v.rgb[0]},${v.rgb[1]},${v.rgb[2]},0.4)`,
+                label: {
+                    text: v.label,
+                    verticalAlign: "middle"
+                }
+            }
+        });
+
+        this.chart = Highcharts.chart(divId, {
+            chart: {
+                type: 'line',
+                zoomType: 'x',
+            },
+            title: {
+                text: "foo"
+            },
+            xAxis: {
+                crosshair: true,
+                type: "datetime",
+                title: {
+                    text: 'Time'
+                },
+                _tickInterval: 1000 * 3600 * 24,
+                _labels: {
+                    format: "{value:%Y-%m-%d}"
+                },
+                gridLineWidth: 1,
+                gridLineColor: `rgba(200,200,200,0.4)`
+            },
+            yAxis: {
+                crosshair: true,
+                title: {
+                    text: 'AQI'
+                },
+                tickInterval: 50,
+                plotBands: plotBands,
+                gridLineWidth: 0,
+            },
+            series: series,
+        });
+    }
 }

@@ -22,6 +22,8 @@
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
     -->
 
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+
     <script src="https://code.jscharting.com/latest/jscharting.js"></script>
     <script src="https://code.jscharting.com/latest/modules/toolbar.js"></script>
 
@@ -58,9 +60,10 @@
                     <div class="info-sensor-title">
                         {{ s.results?.Label }}
                     </div>
-                    <hr style="color: red">
                     <div class="info-sensor-details">
                         {{ s.results?.DEVICE_LOCATIONTYPE }}, #{{ s.id }}
+                    </div>
+                    <div v-bind:style="{background: s.color, height: '15px'}">
                     </div>
                 </td>
                 <td class="info-big info-aqi" v-bind:style="{background: s.getStat()?.color, color: s.getStat()?.text}">

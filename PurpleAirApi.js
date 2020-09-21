@@ -81,20 +81,24 @@ class PurpleAirApi {
 
     static generateBoundaries()
     {
+        let comp = val => "0".concat(val.toString(16)).substr(-2,2);
+
         function rgb(r, g, b) {
-            let comp = val => "0".concat(val.toString(16)).substr(-2,2);
             return "#" + comp(r) + comp(g) + comp(b);
+        }
+        function rgba(r, g, b, a) {
+            return "#" + comp(r) + comp(g) + comp(b) + comp(a);
         }
 
         let boundary_data = [
-            [    0,  rgb(104,225,67), "Good"],
-            [   50,  rgb(255,255,85), "Moderate"],
-            [  100,  rgb(239,133,51), "Unhealthy for S.G."],
-            [  150,  rgb(234,51,36),  "Unhealthy"],
-            [  200,  rgb(140,26,75),  "Very Unhealthy"],
-            [  300,  rgb(115,20,37),  "Hazardous"],
-            [  500,  rgb(65,0,25),  "Here be monsters"],
-            [  1000,  rgb(65,0,25),  ""],
+            [    0,  [104,225,67], "Good"],
+            [   50,  [255,255,85], "Moderate"],
+            [  100,  [239,133,51], "Unhealthy for S.G."],
+            [  150,  [234,51,36],  "Unhealthy"],
+            [  200,  [140,26,75],  "Very Unhealthy"],
+            [  300,  [115,20,37],  "Hazardous"],
+            [  500,  [65,0,25],  "Here be monsters"],
+            [  1000, [65,0,25],  ""],
         ];
         this.boundaries_max = 1000;
 
@@ -102,7 +106,8 @@ class PurpleAirApi {
         let boundaries = boundary_data.map(v => {
             return {
                 low: v[0],
-                color: v[1],
+                color: rgb(v[1][0], v[1][1], v[1][2]),
+                rgb: v[1],
                 label: v[2]
             }
         });
