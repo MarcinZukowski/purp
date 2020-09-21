@@ -17,7 +17,7 @@ class SensorData{
         this.id = id;
         this.label = id;
         this.key = key;
-        this.color = tinycolor("#c00").spin(data.sensors.length * -100).toString();
+        this.color = tinycolor("#00c").spin(data.sensors.length * 80).toString();
         fun(`Created ${this}`);
     }
 
@@ -163,6 +163,7 @@ class SensorData{
     drawChart()
     {
         this.drawChartHC();
+//        this.drawChartJSC();
     }
 
     // JSCharting

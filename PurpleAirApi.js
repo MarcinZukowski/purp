@@ -81,6 +81,7 @@ class PurpleAirApi {
 
     static generateBoundaries()
     {
+        log("generateBoundaries(): start")
         let comp = val => "0".concat(val.toString(16)).substr(-2,2);
 
         function rgb(r, g, b) {
@@ -112,6 +113,7 @@ class PurpleAirApi {
             }
         });
         boundaries.forEach((v,i, a) => a[i].high = a[i + 1]?.low || 1000);
+        log("generateBoundaries(): end")
         return boundaries;
     }
 

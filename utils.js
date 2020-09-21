@@ -55,7 +55,9 @@ function log(text)
         elem.append(`[${dateStr}] ${text}<br/>`);
         // Scroll to bottom
         let dom = elem[0];
-        dom.scrollTop = dom.scrollHeight;
+        if (dom) {
+            dom.scrollTop = dom.scrollHeight;
+        }
 
     }
 }

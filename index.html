@@ -63,7 +63,7 @@
                     <div class="info-sensor-details">
                         {{ s.results?.DEVICE_LOCATIONTYPE }}, #{{ s.id }}
                     </div>
-                    <div v-bind:style="{background: s.color, height: '15px'}">
+                    <div v-bind:style="{background: s.color, height: '6px'}">
                     </div>
                 </td>
                 <td class="info-big info-aqi" v-bind:style="{background: s.getStat()?.color, color: s.getStat()?.text}">
@@ -136,7 +136,7 @@
         {{error}}
     </div>
 
-    <div id="log" class="collapse log"></div>
+    <div id="log" class="log"></div>
     <button id="log-btn" type="button" class="btn" data-toggle="collapse" data-target="#log">Show log</button>
 </div>
 

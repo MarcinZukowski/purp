@@ -26,7 +26,7 @@ var data = {
 
 function main()
 {
-    log("Starting");
+    log("Starting!");
 
     app = new Vue({
         el: '#app',
