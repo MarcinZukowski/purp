@@ -33,6 +33,8 @@ function main()
         data: data
     });
 
+    log(`Vue version: ${Vue.version}`);
+
     let shows = $.QueryString.show?.split(',');
     let keys = $.QueryString.key?.split?.(',');
     if (!shows) {
@@ -45,6 +47,8 @@ function main()
     }
 
     shows.forEach(function (id, idx) {
-        data.sensors.push(new SensorData(id, keys?.[idx]))
+        let sensor = new SensorData(id, keys?.[idx]);
+        data.sensors.push(sensor);
+        sensor.loadData();
     })
 }

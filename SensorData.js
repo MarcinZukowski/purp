@@ -1,5 +1,4 @@
 class SensorData{
-    results;
     error;
     currentStatus = "initializing";
     chart;
@@ -18,10 +17,6 @@ class SensorData{
         this.id = id;
         this.key = key;
         fun(`Created ${this}`);
-
-        this.setStatus("Loading sensor data");
-
-        this.loadData();
     }
 
     setStatus(text)
@@ -32,6 +27,7 @@ class SensorData{
 
     loadData()
     {
+        this.setStatus("Loading sensor data");
         PurpleAirApi.getSensorData(this);
     }
 
@@ -104,7 +100,7 @@ class SensorData{
         return PurpleAirApi.aqiColor(aqi);
     }
 
-    getStat(si)
+    getStat(si = statsInfo[0])
     {
         if (!this.results) {
             return null;
@@ -162,7 +158,7 @@ class SensorData{
 
     drawChart()
     {
-        let divId = 'chart-' + this.key;
+        let divId = 'chart';
 
         // Shared line settings
         let line = {
@@ -184,6 +180,28 @@ class SensorData{
         const HOUR = 3600 * SECOND;
         const DAY = 24 * HOUR;
         const WEEK = 7 * DAY;
+
+        let series = [];
+        for (let idx = 0; idx < data.sensors.length; idx++) {
+            let sensor = data.sensors[idx];
+            if (!sensor.results?.timeline) {
+                continue;
+            }
+            series.push(
+                {
+                    name: sensor.id,
+                    defaultPoint: {
+                        marker_visible: false,
+                        focusGlow: {width: 5, color: "black"},
+                    },
+                    mouseTracking_enabled: true,
+                    line_width: idx == 0 ? 2 : 1,
+                    points: sensor.results.timeline.feeds.map(
+                        v => [v.created_at, PurpleAirApi.aqiFromPM(v.field2)]
+                    )
+                }
+            );
+        }
 
         this.chart = JSC.chart(divId,{
             debug: true,
@@ -239,22 +257,8 @@ class SensorData{
                 scale_type: 'time',
                 formatString: 'HH:mm<br/>MMM dd yyyy',
             },
+            series: series
 //            defaultPoint_tooltip: '%xValue<br/>%yValue',
-            series: [
-                {
-                    name: 'AQI over time',
-                    defaultPoint: {
-                        marker_visible: false,
-                        focusGlow: {width: 5, color: "black"},
-                        color: "red",
-                    },
-                    mouseTracking_enabled: true,
-                    line_width:2,
-                    points: this.results.timeline.feeds.map(
-                        v => [v.created_at, PurpleAirApi.aqiFromPM(v.field2)]
-                    )
-                },
-            ]
         });
     }
 

@@ -40,49 +40,54 @@
 
     <div v-if="!error">
         <p>Sensors:</p>
-        <table>
+        <table class="main-table">
             <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Temperature</th>
-                <th>AQI</th>
+                <th>Sensor</th>
+                <th>Current AQI</th>
+                <th>Current Temp.</th>
+                <th>Details</th>
                 <th>Status</th>
             </tr>
         <tbody v-for="s in sensors">
-
             <tr v-if="!s.error">
-                <td>
-                    {{ s.id }}
-                    <br>
-                    <a v-bind:href="s.getInfoURL()"><img src="img/info-small.png"/></a>
-                </td>
-                <td>
-                    {{ s.results?.Label }}
-                    <br/>
-                    ({{ s.results?.DEVICE_LOCATIONTYPE }})
-                    <br/>
-                    <div class="stat-map"><a v-bind:href="s.getMapURL()"><img src="img/map-small.png"/></a></div>
-                </td>
-                <td class="temp">
-                    {{ s.getTempF() }} °F
-                    <br/>
-                    <div class="stat-map"><a v-bind:href="s.getTempURL()"><img src="img/map-small.png"/></a></div>
-                </td>
-                <td class="aqi">
-                    <table>
-                        <tr>
-                            <td v-for="si in statsInfo" v-bind:style="{background: s.getStat(si)?.color, color: s.getStat(si)?.text}">
-                                <div class="stat-map" style="float: right"><a v-bind:href="s.getStat(si)?.map"><img src="img/map-small.png"/></a></div><div class="stat-label">{{s.getStat(si)?.label}}</div>
-                                <div class="stat-aqi">{{s.getStat(si)?.aqi}}</div>
-                                <div class="stat-pm">{{s.getStat(si)?.pm}} µg/m3</div>
-                            </td>
-                        </tr>
-                    </table>
-                    <div v-bind:id="'chart-' + s.key" style="max-width: 100%; height: 400px;margin: 0px auto">
-                        bla
+                <td class="info-sensor">
+                    <div class="stat-map" style="float: right"><a v-bind:href="s.getMapURL()"><img src="img/map-small.png"/></a></div>
+                    <div style="float: left">
+                        <a v-bind:href="s.getInfoURL()"><img src="img/info-small.png"/></a>
+                    </div>
+                    <div class="info-sensor-title">
+                        {{ s.results?.Label }}
+                    </div>
+                    <hr style="color: red">
+                    <div class="info-sensor-details">
+                        {{ s.results?.DEVICE_LOCATIONTYPE }}, #{{ s.id }}
                     </div>
                 </td>
-                <td class="status" rowspan="2">
+                <td class="info-big info-aqi" v-bind:style="{background: s.getStat()?.color, color: s.getStat()?.text}">
+                    <div class="stat-map" style="float: right"><a v-bind:href="s.getStat()?.map"><img src="img/map-small.png"/></a></div>
+                    <div class="info-big-value">{{s.getStat()?.aqi}}</div>
+                    <div class="info-big-pm">{{s.getStat()?.pm}} µg/m3</div>
+                </td>
+                <td class="info-big info-temp">
+                    <div class="stat-map" style="float: right"><a v-bind:href="s.getTempURL()"><img src="img/map-small.png"/></a></div>
+                    <div class="info-big-value">{{ s.getTempF() }} °F</div>
+                </td>
+                <td class="info-details">
+                    <div style="height: 100%">
+                        <table class="aqi-details">
+                            <tr>
+                                <td v-for="si in statsInfo" v-bind:style="{background: s.getStat(si)?.color, color: s.getStat(si)?.text}">
+                                    <div class="stat-map" style="float: right"><a v-bind:href="s.getStat(si)?.map"><img src="img/map-tiny.png"/></a></div>
+                                    <div class="stat-label">{{s.getStat(si)?.label}}</div>
+                                    <div class="stat-aqi">{{s.getStat(si)?.aqi}}</div>
+                                    <div class="stat-pm">{{s.getStat(si)?.pm}} µg/m3</div>
+                                </td>
+                            </tr>
+                        </table>
+
+                    </div>
+                </td>
+                <td class="status">
                     <div id="status">
                         Status: {{ s.currentStatus }}
                     </div>
@@ -92,7 +97,7 @@
                     </div>
                 </td>
             </tr>
-            <tr v-if="!s.error" class="neighbors">
+            <tr v-if="!s.error && false" class="neighbors">
                 <td colspan="3">
                     Nearby ({{s.getNearbyStat(si)?.count || 0}} devices in {{s.getNearbyStat(si)?.miles || "?"}} mile radius)
                 </td>
@@ -112,6 +117,14 @@
                 <td v-if="s.error" colspan="5" class="error">{{ s.error }}</td>
             </tr>
         </tbody>
+
+        <tr>
+            <td colspan="5">
+                <div v-bind:id="'chart'" style="max-width: 100%; height: 400px;margin: 0px auto">
+                    chart
+                </div>
+            </td>
+        </tr>
 
         </table>
     </div>

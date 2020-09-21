@@ -10,30 +10,57 @@ body {
     font-size: 20pt;
 }
 
-table {
+.main-table {
     width: 100%;
     border-collapse: collapse;
     border: 4px solid black;
 }
 
-tr {
+.main-table tr {
     border: 2px solid black;
 }
 
-td,th {
+.main-table td,th {
     border: 1px solid black;
     padding: 3px;
     text-align: center;
 }
 
-.aqi table, .aqi tr {
+.info-details table, .info-details tr {
     border: 0px solid black;
+    height: 100%;
 }
-.aqi td {
+.info-details td {
     border: 1px solid black;
     height: 100%;
     text-align: center;
     white-space: nowrap;
+}
+
+table.aqi-details {
+    width: 100%;
+    height: 100%;
+}
+
+td.info-aqi , td.info-temp{
+}
+
+.info-sensor-title {
+    font-size: 20px;
+    font-weight: bold;
+}
+.info-sensor-details {
+    font-size: 16px;
+}
+
+.info-big {
+    font-weight: bold;
+}
+.info-big-value {
+    font-size: 40px;
+}
+.info-big-pm {
+    font-size: 20px;
 }
 
 td.status {
