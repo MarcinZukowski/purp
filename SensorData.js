@@ -295,7 +295,7 @@ class SensorData{
                     mouseTracking_enabled: true,
                     line_width: idx == 0 ? 2 : 1,
                     data: sensor.results.timeline.feeds.map(
-                        v => [new Date(v.created_at), PurpleAirApi.aqiFromPM(v.field2)]
+                        v => [new Date(v.created_at).getTime(), PurpleAirApi.aqiFromPM(v.field2)]
                     )
                 }
             );
@@ -313,6 +313,12 @@ class SensorData{
             }
         });
 
+        Highcharts.setOptions({
+            time: {
+                useUTC: false,
+            }
+        });
+
         this.chart = Highcharts.chart(divId, {
             chart: {
                 type: 'line',
@@ -321,8 +327,13 @@ class SensorData{
             title: {
                 text: "foo"
             },
+            tooltip: {
+                crosshairs: true,
+                split: false,
+                shared: true,
+                enabled: true,
+            },
             xAxis: {
-                crosshair: true,
                 type: "datetime",
                 title: {
                     text: 'Time'
