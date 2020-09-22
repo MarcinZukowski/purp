@@ -187,10 +187,6 @@ class SensorData{
                 run_delayed(1000, doZoom.bind(this, ms, false));
             }
         }
-        const SECOND = 1000;
-        const HOUR = 3600 * SECOND;
-        const DAY = 24 * HOUR;
-        const WEEK = 7 * DAY;
 
         let series = [];
         for (let idx = 0; idx < data.sensors.length; idx++) {
@@ -323,9 +319,12 @@ class SensorData{
             chart: {
                 type: 'line',
                 zoomType: 'x',
+                animation: {
+                    duration: 300
+                }
             },
             title: {
-                text: "foo"
+                text: "AQI over time"
             },
             tooltip: {
                 crosshairs: true,
@@ -356,5 +355,33 @@ class SensorData{
             },
             series: series,
         });
+
+        let zooms = [
+            ["3 hours", 3 * HOUR],
+            ["1 day", 1 * DAY],
+            ["1 week", 1 * WEEK],
+            ["4 weeks", 4 * WEEK]
+        ];
+
+        function zoom(ms) {
+            log(`Zooming to ${ms}`);
+            let axis = this.chart.xAxis[0];
+            if (ms) {
+                axis.setExtremes(Date.now() - ms, Date.now());
+            } else {
+                axis.setExtremes();
+            }
+        }
+
+        $("#chart-bottom").html(`<button class="btn btn-primary" id="zoom-reset">Reset zoom</button>`);
+        $("#zoom-reset").click(zoom.bind(this, null))
+
+        for (let i = 0; i < zooms.length; i++) {
+            let z = zooms[i];
+            $("#chart-bottom").append(`<button style="margin: 5px;" class="btn btn-info" id="zoom-${i}">${z[0]}</button>`);
+            $(`#zoom-${i}`).click(zoom.bind(this, z[1]));
+        }
+
+        zoom.bind(this)(1 * DAY);
     }
 }

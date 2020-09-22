@@ -124,8 +124,12 @@
 
         <tr>
             <td colspan="5">
-                <div v-bind:id="'chart'" style="max-width: 100%; height: 400px;margin: 0px auto">
-                    chart
+                <div style="position: relative">
+                    <div id="chart" style="max-width: 100%; height: 400px;margin: 0px auto">
+                        chart
+                    </div>
+                    <div id="chart-bottom" style="position: absolute; bottom: 0; right: 0;">
+                    </div>
                 </div>
             </td>
         </tr>

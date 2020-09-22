@@ -118,3 +118,8 @@ function haversineDistance([lat1, lon1], [lat2, lon2], isMiles = false)
 
     return finalDistance;
 }
+
+const SECOND = 1000;
+const HOUR = 3600 * SECOND;
+const DAY = 24 * HOUR;
+const WEEK = 7 * DAY;

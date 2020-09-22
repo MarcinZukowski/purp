@@ -33,6 +33,8 @@ function main()
         data: data
     });
 
+    log("Vue created!");
+
     log(`Vue version: ${Vue.version}`);
 
     let shows = $.QueryString.show?.split(',');
