@@ -2,6 +2,7 @@ class SensorData{
     error;
     currentStatus = "initializing";
     chart;
+    index;
 
     START_BOX_SIZE = 4000;
     MAX_BOX_SIZE = 32000; // meters
@@ -18,7 +19,14 @@ class SensorData{
         this.label = id;
         this.key = key;
         this.color = tinycolor("#00c").spin(data.sensors.length * 80).toString();
-        fun(`Created ${this}`);
+        this.index = sensorStates.length;
+        sensorStates.push({});
+        log(`Created ${this} at index ${this.index}`);
+    }
+
+    state()
+    {
+        return sensorStates[this.index];
     }
 
     setStatus(text)
@@ -60,11 +68,11 @@ class SensorData{
     consumeTimelineData(data)
     {
         this.clearError();
-        Vue.set(this.results, "timeline", data);
 
+        this.state().timeline = data;
         this.setStatus("Drawing chart");
         this.drawChart();
-        this.setStatus("Ready");
+        this.setStatus("Chart ready");
 
 //        this.loadNeighbors(this.START_BOX_SIZE);
     }
@@ -166,13 +174,36 @@ class SensorData{
 //        this.drawChartJSC();
     }
 
+    computeSeries()
+    {
+        let series = [];
+        for (let idx = 0; idx < data.sensors.length; idx++) {
+            let sensor = data.sensors[idx];
+            let timeline = sensor.state().timeline;
+            if (!timeline) {
+                continue;
+            }
+            series.push(
+                {
+                    name: sensor.label,
+                    color: sensor.color,
+                    line_width: idx == 0 ? 2 : 1,
+                    data: timeline.feeds.map(
+                        v => [new Date(v.created_at).getTime(), PurpleAirApi.aqiFromPM(v.field2)]
+                    )
+                }
+            );
+        }
+        return series;
+    }
+
     // JSCharting
     drawChartJSC()
     {
         let divId = 'chart';
 
         // Shared line settings
-        let line = {
+        let axisLine = {
             width: 3,
             caps: { end_type:'arrow', },
         };
@@ -180,37 +211,28 @@ class SensorData{
         function doZoom(ms, retry = true)
         {
             log(`doZoom: ${ms}`);
-            if (this.chart) {
-                this.chart.zoom([Date.now() - ms, 0, ms, 0]);
+            let chart = this.state().chart;
+            if (chart) {
+                chart.zoom([Date.now() - ms, 0, ms, 0]);
             } else {
                 log("...retrying");
                 run_delayed(1000, doZoom.bind(this, ms, false));
             }
         }
 
-        let series = [];
-        for (let idx = 0; idx < data.sensors.length; idx++) {
-            let sensor = data.sensors[idx];
-            if (!sensor.results?.timeline) {
-                continue;
-            }
-            series.push(
-                {
-                    name: sensor.id,
-                    defaultPoint: {
-                        marker_visible: false,
-                        focusGlow: {width: 5, color: "black"},
-                    },
-                    mouseTracking_enabled: true,
-                    line_width: idx == 0 ? 2 : 1,
-                    points: sensor.results.timeline.feeds.map(
-                        v => [v.created_at, PurpleAirApi.aqiFromPM(v.field2)]
-                    )
-                }
-            );
-        }
+        let series = this.computeSeries();
+        // JSC specific
+        series.forEach((s, idx) => {
+            s.defaultPoint = {
+                marker_visible: false,
+                    focusGlow: {width: 5, color: "black"},
+            };
+            s.mouseTracking_enabled = true;
+            s.line_width = (idx === 0) ? 2 : 1;
 
-        this.chart = JSC.chart(divId,{
+        });
+
+        this.state().chart = JSC.chart(divId,{
             debug: true,
             type: 'line',
             events_load: doZoom.bind(this, 1 * DAY),
@@ -243,7 +265,7 @@ class SensorData{
             yAxis:{
                 label_text:'AQI',
                 scale_interval:50,
-                line: line,
+                line: axisLine,
                 markers: PurpleAirApi.boundaries.map(v => {
                     return {
                         value: [v.low, v.high],
@@ -259,7 +281,7 @@ class SensorData{
                 customTicks: PurpleAirApi.boundaries.map(v => v.low),
             },
             xAxis: {
-                line: line,
+                line: axisLine,
                 label_text:'Time',
                 scale_type: 'time',
                 formatString: 'HH:mm<br/>MMM dd yyyy',
@@ -273,29 +295,12 @@ class SensorData{
     drawChartHC()
     {
         let divId = 'chart';
+        let series = this.computeSeries();
 
-        let series = [];
-        for (let idx = 0; idx < data.sensors.length; idx++) {
-            let sensor = data.sensors[idx];
-            if (!sensor.results?.timeline) {
-                continue;
-            }
-            series.push(
-                {
-                    name: sensor.label,
-                    defaultPoint: {
-                        marker_visible: false,
-                        focusGlow: {width: 5, color: "black"},
-                    },
-                    color: sensor.color,
-                    mouseTracking_enabled: true,
-                    line_width: idx == 0 ? 2 : 1,
-                    data: sensor.results.timeline.feeds.map(
-                        v => [new Date(v.created_at).getTime(), PurpleAirApi.aqiFromPM(v.field2)]
-                    )
-                }
-            );
-        }
+        // HC specific
+        series.forEach((s, idx) => {
+            s.lineWidth = (idx === 0) ? 2 : 1;
+        })
 
         let plotBands = PurpleAirApi.boundaries.map(v => {
             return {
@@ -315,7 +320,7 @@ class SensorData{
             }
         });
 
-        this.chart = Highcharts.chart(divId, {
+        this.state().chart = Highcharts.chart(divId, {
             chart: {
                 type: 'line',
                 zoomType: 'x',
@@ -365,7 +370,7 @@ class SensorData{
 
         function zoom(ms) {
             log(`Zooming to ${ms}`);
-            let axis = this.chart.xAxis[0];
+            let axis = this.state().chart.xAxis[0];
             if (ms) {
                 axis.setExtremes(Date.now() - ms, Date.now());
             } else {

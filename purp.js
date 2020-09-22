@@ -23,6 +23,8 @@ var data = {
     sensors: [],
     statsInfo: statsInfo
 };
+// Non-reactive sensor states
+var sensorStates = [];
 
 function main()
 {
