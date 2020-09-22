@@ -112,3 +112,8 @@ td.temp {
     color: white;
     font-weight: bold;
 }
+
+.hc-zoom-btn {
+    margin: 2pt;
+    padding: 3pt;
+}

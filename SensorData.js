@@ -373,12 +373,12 @@ class SensorData{
             }
         }
 
-        $("#chart-bottom").html(`<button class="btn btn-primary" id="zoom-reset">Reset zoom</button>`);
+        $("#chart-bottom").html(`<button class="btn btn-primary hc-zoom-btn" id="zoom-reset">Reset zoom</button>`);
         $("#zoom-reset").click(zoom.bind(this, null))
 
         for (let i = 0; i < zooms.length; i++) {
             let z = zooms[i];
-            $("#chart-bottom").append(`<button style="margin: 5px;" class="btn btn-info" id="zoom-${i}">${z[0]}</button>`);
+            $("#chart-bottom").append(`<button class="btn btn-info hc-zoom-btn" id="zoom-${i}">${z[0]}</button>`);
             $(`#zoom-${i}`).click(zoom.bind(this, z[1]));
         }
 
