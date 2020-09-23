@@ -18,8 +18,6 @@ let statsInfo = _statsInfo.map(v => {
 var app = null;
 var data = {
     error: null,
-    title: 'Purp?',
-    message: 'Hello Vue!!??!?!',
     sensors: [],
     statsInfo: statsInfo
 };

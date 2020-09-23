@@ -39,10 +39,14 @@
 <body onload="main()">
 
 <div id="app">
-    {{title}}
+
+    <div class="app-title">
+        <img src="img/icon.png" width="32" height="32">
+        <b>Purp</b>
+        (<a href="https://www.github.com/MarcinZukowski/purp">github</a>)
+    </div>
 
     <div v-if="!error">
-        <p>Sensors:</p>
         <table class="main-table">
             <tr>
                 <th>Sensor</th>
