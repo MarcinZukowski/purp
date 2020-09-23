@@ -62,6 +62,11 @@ function log(text)
     }
 }
 
+function logj(o)
+{
+    log(JSON.stringify(o));
+}
+
 function computeLatLonBox(lat, lon, box_meters)
 {
     const r_earth = 6371008;  // mean radius according to IUGG
@@ -117,6 +122,11 @@ function haversineDistance([lat1, lon1], [lat2, lon2], isMiles = false)
     }
 
     return finalDistance;
+}
+
+function none(v)
+{
+    return v === null || v === undefined;
 }
 
 const SECOND = 1000;
