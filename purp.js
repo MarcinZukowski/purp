@@ -25,6 +25,9 @@ var data = {
 };
 // Non-reactive sensor states
 var sensorStates = [];
+var globalState = {
+    chart: null,
+}
 
 function main()
 {

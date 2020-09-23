@@ -176,25 +176,18 @@ class SensorData{
 
     computeSeries()
     {
-        let series = [];
-        for (let idx = 0; idx < data.sensors.length; idx++) {
-            let sensor = data.sensors[idx];
-            let timeline = sensor.state().timeline;
-            if (!timeline) {
-                continue;
-            }
-            series.push(
-                {
-                    name: sensor.label,
-                    color: sensor.color,
-                    line_width: idx == 0 ? 2 : 1,
+        let timeline = this.state().timeline;
+        if (!timeline) {
+            return null;
+        }
+        let my_series = {
+                    name: this.label,
+                    color: this.color,
                     data: timeline.feeds.map(
                         v => [new Date(v.created_at).getTime(), PurpleAirApi.aqiFromPM(v.field2)]
                     )
-                }
-            );
-        }
-        return series;
+                };
+        return my_series;
     }
 
     // JSCharting
@@ -220,17 +213,13 @@ class SensorData{
             }
         }
 
-        let series = this.computeSeries();
-        // JSC specific
-        series.forEach((s, idx) => {
-            s.defaultPoint = {
+        let my_series = this.computeSeries();
+        my_series.defaultPoint = {
                 marker_visible: false,
                     focusGlow: {width: 5, color: "black"},
-            };
-            s.mouseTracking_enabled = true;
-            s.line_width = (idx === 0) ? 2 : 1;
-
-        });
+        };
+        my_series.mouseTracking_enabled = true;
+        my_series.line_width = (idx === 0) ? 2 : 1;
 
         this.state().chart = JSC.chart(divId,{
             debug: true,
@@ -286,21 +275,26 @@ class SensorData{
                 scale_type: 'time',
                 formatString: 'HH:mm<br/>MMM dd yyyy',
             },
-            series: series
 //            defaultPoint_tooltip: '%xValue<br/>%yValue',
         });
     }
 
-    // HighChart
     drawChartHC()
     {
-        let divId = 'chart';
-        let series = this.computeSeries();
+        let my_series = this.computeSeries();
+        my_series.lineWidth = (this.index === 0) ? 2 : 1;
+        if (!globalState.chart) {
+            this.drawChartHC_create();
+        }
+        let chart = globalState.chart;
 
-        // HC specific
-        series.forEach((s, idx) => {
-            s.lineWidth = (idx === 0) ? 2 : 1;
-        })
+        chart.addSeries(my_series, true);
+    }
+
+    // HighChart
+    drawChartHC_create()
+    {
+        let divId = 'chart';
 
         let plotBands = PurpleAirApi.boundaries.map(v => {
             return {
@@ -320,7 +314,7 @@ class SensorData{
             }
         });
 
-        this.state().chart = Highcharts.chart(divId, {
+        let chart = Highcharts.chart(divId, {
             chart: {
                 type: 'line',
                 zoomType: 'x',
@@ -358,7 +352,6 @@ class SensorData{
                 plotBands: plotBands,
                 gridLineWidth: 0,
             },
-            series: series,
         });
 
         let zooms = [
@@ -370,7 +363,7 @@ class SensorData{
 
         function zoom(ms) {
             log(`Zooming to ${ms}`);
-            let axis = this.state().chart.xAxis[0];
+            let axis = globalState.chart.xAxis[0];
             if (ms) {
                 axis.setExtremes(Date.now() - ms, Date.now());
             } else {
@@ -387,6 +380,8 @@ class SensorData{
             $(`#zoom-${i}`).click(zoom.bind(this, z[1]));
         }
 
-        zoom.bind(this)(1 * DAY);
+        globalState.chart = chart;
+
+        zoom(1 * DAY);
     }
 }
