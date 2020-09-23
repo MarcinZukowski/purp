@@ -157,10 +157,14 @@ class SensorData{
 
     getTempF()
     {
+        // From https://www2.purpleair.com/community/faq#hc-primary-and-secondary-data-header
+        // Tempertautre_F: Temperature inside of the sensor housing in Fahrenheit. On average, this is 8F higher than ambient conditions. (From BME280)
+        const TEMPERATURE_OFFSET = -8;
+
         if (!this.results) {
             return null;
         }
-        return 1.0 * this.results.temp_f;
+        return 1.0 * this.results.temp_f + TEMPERATURE_OFFSET;
     }
 
     getTempCSS()
