@@ -1,6 +1,6 @@
 class PurpleAirApi {
 
-    static CALL_DELAY = 500; // URL call delay, hopefully to reduce throttling
+    static CALL_DELAY = 100; // URL call delay, hopefully to reduce throttling
 
     static boundaries = this.generateBoundaries();
 
