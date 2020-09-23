@@ -163,6 +163,20 @@ class SensorData{
         return 1.0 * this.results.temp_f;
     }
 
+    getTempCSS()
+    {
+        let temp = this.getTempF();
+        let style = {}
+        if (!none(temp)) {
+            let minTemp = temp - 5;
+            let maxTemp = temp + 5;
+            let minColor = fahrenheitToColor(minTemp);
+            let maxColor = fahrenheitToColor(maxTemp);
+            style = {'background-image': `linear-gradient(${maxColor},${minColor})`};
+        }
+        return style;
+    }
+
     getTempURL()
     {
         return this.getMapURL(10, "TEMP");

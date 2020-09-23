@@ -129,6 +129,15 @@ function none(v)
     return v === null || v === undefined;
 }
 
+function fahrenheitToColor(temp)
+{
+    // Our temp range is 0(cold)..120(hot) fahrenheit
+    // Our hue range is 300(cold)..0(hot)
+    temp = Math.max(0, Math.min(100, temp));
+    let hue = 300 - (300 * ( temp / 100 ));
+    return tinycolor({ h: hue, s: 1, l: .7 }).toHexString();
+}
+
 const SECOND = 1000;
 const HOUR = 3600 * SECOND;
 const DAY = 24 * HOUR;

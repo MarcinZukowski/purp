@@ -76,7 +76,7 @@
                     <div class="info-big-value">{{s.getStat()?.aqi}}</div>
                     <div class="info-big-pm">{{s.getStat()?.pm}} µg/m3</div>
                 </td>
-                <td class="info-big info-temp">
+                <td class="info-big info-temp" v-bind:style="s.getTempCSS()">
                     <div class="stat-map" style="float: right"><a v-bind:href="s.getTempURL()"><img src="img/map-small.png"/></a></div>
                     <div class="info-big-value">{{ s.getTempF() }} °F</div>
                 </td>
