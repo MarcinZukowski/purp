@@ -186,6 +186,14 @@ class SensorData{
         return this.getMapURL(10, "TEMP");
     }
 
+    // Available zoom options
+    chart_zooms = [
+        ["3 hours", 3 * HOUR],
+        ["1 day", 1 * DAY],
+        ["1 week", 1 * WEEK],
+        ["4 weeks", 4 * WEEK]
+    ];
+
     drawChart()
     {
         this.drawChartHC();
@@ -202,7 +210,7 @@ class SensorData{
                     name: this.label,
                     color: this.color,
                     data: timeline.feeds.map(
-                        v => [new Date(v.created_at).getTime(), PurpleAirApi.aqiFromPM(v.field2)]
+                        v => [v.created_at, PurpleAirApi.aqiFromPM(v.field2)]
                     )
                 };
         return my_series;
@@ -211,9 +219,26 @@ class SensorData{
     // JSCharting
     drawChartJSC()
     {
+        let my_series = this.computeSeries();
+        my_series.defaultPoint = {
+            marker_visible: false,
+            focusGlow: {width: 5, color: "black"},
+        };
+        my_series.mouseTracking_enabled = true;
+        my_series.line_width = (this.index === 0) ? 2 : 1;
+        my_series.points = my_series.data;
+        delete my_series.data;
+
+        if (globalState.chart) {
+            globalState.chart.series.add(my_series);
+            return;
+        }
+
+        // Create a new chart
+
         let divId = 'chart';
 
-        // Shared line settings
+        // Shared axis line settings
         let axisLine = {
             width: 3,
             caps: { end_type:'arrow', },
@@ -222,7 +247,7 @@ class SensorData{
         function doZoom(ms, retry = true)
         {
             log(`doZoom: ${ms}`);
-            let chart = this.state().chart;
+            let chart = globalState.chart;
             if (chart) {
                 chart.zoom([Date.now() - ms, 0, ms, 0]);
             } else {
@@ -231,34 +256,16 @@ class SensorData{
             }
         }
 
-        let my_series = this.computeSeries();
-        my_series.defaultPoint = {
-                marker_visible: false,
-                    focusGlow: {width: 5, color: "black"},
-        };
-        my_series.mouseTracking_enabled = true;
-        my_series.line_width = (idx === 0) ? 2 : 1;
+        let toolbar_items = {};
+        this.chart_zooms.forEach(v => {
+            toolbar_items[v[0]] = { events_click: doZoom.bind(this, v[1]) }
+        })
 
-        this.state().chart = JSC.chart(divId,{
+        globalState.chart = JSC.chart(divId,{
             debug: true,
             type: 'line',
             events_load: doZoom.bind(this, 1 * DAY),
-            toolbar: {
-                items: {
-                    "3 hours": {
-                        events_click: doZoom.bind(this, 3 * HOUR),
-                    },
-                    "1 day": {
-                        events_click: doZoom.bind(this, 1 * DAY),
-                    },
-                    "1 week": {
-                        events_click: doZoom.bind(this, 1 * WEEK),
-                    },
-                    "4 weeks": {
-                        events_click: doZoom.bind(this, 4 * WEEK),
-                    },
-                }
-            },
+            toolbar_items: toolbar_items,
             axisToZoom: 'x',
             legend_visible: false,
             annotations:[
@@ -293,7 +300,9 @@ class SensorData{
                 scale_type: 'time',
                 formatString: 'HH:mm<br/>MMM dd yyyy',
             },
-//            defaultPoint_tooltip: '%xValue<br/>%yValue',
+            series: [
+                my_series
+            ]
         });
     }
 
@@ -301,17 +310,16 @@ class SensorData{
     {
         let my_series = this.computeSeries();
         my_series.lineWidth = (this.index === 0) ? 2 : 1;
-        if (!globalState.chart) {
-            this.drawChartHC_create();
+        my_series.data = my_series.data.map(
+            v => [new Date(v[0]).getTime(), v[1]]
+        );
+
+        if (globalState.chart) {
+            globalState.chart.addSeries(my_series, true);
+            return;
         }
-        let chart = globalState.chart;
 
-        chart.addSeries(my_series, true);
-    }
-
-    // HighChart
-    drawChartHC_create()
-    {
+        // Create a new chart
         let divId = 'chart';
 
         let plotBands = PurpleAirApi.boundaries.map(v => {
@@ -370,14 +378,8 @@ class SensorData{
                 plotBands: plotBands,
                 gridLineWidth: 0,
             },
+            series: [ my_series ]
         });
-
-        let zooms = [
-            ["3 hours", 3 * HOUR],
-            ["1 day", 1 * DAY],
-            ["1 week", 1 * WEEK],
-            ["4 weeks", 4 * WEEK]
-        ];
 
         function zoom(ms) {
             log(`Zooming to ${ms}`);
@@ -392,8 +394,8 @@ class SensorData{
         $("#chart-bottom").html(`<button class="btn btn-primary hc-zoom-btn" id="zoom-reset">Reset zoom</button>`);
         $("#zoom-reset").click(zoom.bind(this, null))
 
-        for (let i = 0; i < zooms.length; i++) {
-            let z = zooms[i];
+        for (let i = 0; i < this.chart_zooms.length; i++) {
+            let z = this.chart_zooms[i];
             $("#chart-bottom").append(`<button class="btn btn-info hc-zoom-btn" id="zoom-${i}">${z[0]}</button>`);
             $(`#zoom-${i}`).click(zoom.bind(this, z[1]));
         }
