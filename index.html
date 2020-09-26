@@ -51,11 +51,12 @@
             <tr>
                 <th>Sensor</th>
                 <th>Current AQI</th>
-                <th>Current Temp.</th>
+                <th>Current Temperature</th>
                 <th>Details</th>
                 <th>Status</th>
             </tr>
         <tbody v-for="s in sensors">
+            <!-- Main row per sensor -->
             <tr v-if="!s.error">
                 <td class="info-sensor">
                     <div class="stat-map" style="float: right"><a v-bind:href="s.getMapURL()"><img src="img/map-small.png"/></a></div>
@@ -92,7 +93,6 @@
                                 </td>
                             </tr>
                         </table>
-
                     </div>
                 </td>
                 <td class="status">
@@ -100,11 +100,17 @@
                         Status: {{ s.currentStatus }}
                     </div>
                     <button type="button" class="btn btn-info" data-toggle="collapse" v-bind:data-target="`#rawdata${s.id}`">Show raw data</button>
-                    <div v-bind:id="`rawdata${s.id}`" class="collapse raw-data">
+                </td>
+            </tr>
+            <!-- Raw data, collapsed by default -->
+            <tr v-if="!s.error" v-bind:id="`rawdata${s.id}`" class="collapse">
+                <td colspan="5">
+                    <div class="raw-data">
                         {{ s.results }}
                     </div>
                 </td>
             </tr>
+            <!-- Neighbors -->
             <tr v-if="!s.error && false" class="neighbors">
                 <td colspan="3">
                     Nearby ({{s.getNearbyStat(si)?.count || 0}} devices in {{s.getNearbyStat(si)?.miles || "?"}} mile radius)
