@@ -43,7 +43,7 @@
 <div id="app">
 
     <div class="app-title">
-        <img src="img/icon.png" width="32" height="32">
+        <img src="img/icon.png" width="32" height="32" title="Purp!">
         <b>Purp</b>
         (<a href="https://www.github.com/MarcinZukowski/purp">github</a>)
     </div>
@@ -61,13 +61,13 @@
             <!-- Main row per sensor -->
             <tr v-if="!s.error">
                 <td class="info-sensor">
-                    <div class="stat-map" style="float: right"><a v-bind:href="s.getMapURL()"><img src="img/map-small.png"/></a></div>
+                    <div class="stat-map" style="float: right"><a v-bind:href="s.getMapURL()"><img src="img/map-small.png" title="Show map"/></a></div>
                     <div style="float: left">
-                        <a v-bind:href="s.getInfoURL()"><img src="img/info-small.png"/></a>
+                        <a v-bind:href="s.getInfoURL()"><img src="img/info-small.png" title="Show PurpleAir sensor info"/></a>
                     </div>
                     <div class="info-sensor-title">
                         {{ s.results?.Label }}
-                        <img v-if="s.results?.Hidden == 'true'" src="img/hidden.png" width="32" height="32"/>
+                        <img v-if="s.results?.Hidden == 'true'" src="img/hidden.png" width="32" height="32" title="Sensor hidden"/>
                     </div>
                     <div class="info-sensor-details">
                         {{ s.results?.DEVICE_LOCATIONTYPE }}, #{{ s.id }}
@@ -76,12 +76,12 @@
                     </div>
                 </td>
                 <td class="info-big info-aqi" v-bind:style="{background: s.getStat()?.color, color: s.getStat()?.text}">
-                    <div class="stat-map" style="float: right"><a v-bind:href="s.getStat()?.map"><img src="img/map-small.png"/></a></div>
+                    <div class="stat-map" style="float: right"><a v-bind:href="s.getStat()?.map"><img src="img/map-small.png" title="Show map"/></a></div>
                     <div class="info-big-value">{{s.getStat()?.aqi}}</div>
                     <div class="info-big-pm">{{s.getStat()?.pm}} µg/m3</div>
                 </td>
                 <td class="info-big info-temp" v-bind:style="s.getTempCSS()">
-                    <div class="stat-map" style="float: right"><a v-bind:href="s.getTempURL()"><img src="img/map-small.png"/></a></div>
+                    <div class="stat-map" style="float: right"><a v-bind:href="s.getTempURL()"><img src="img/map-small.png" title="Show map with temperature"/></a></div>
                     <div class="info-big-value">{{ s.getTempF() }} °F</div>
                 </td>
                 <td class="info-details">
@@ -89,7 +89,7 @@
                         <table class="aqi-details">
                             <tr>
                                 <td v-for="si in statsInfo" v-bind:style="{background: s.getStat(si)?.color, color: s.getStat(si)?.text}">
-                                    <div class="stat-map" style="float: right"><a v-bind:href="s.getStat(si)?.map"><img src="img/map-tiny.png"/></a></div>
+                                    <div class="stat-map" style="float: right"><a v-bind:href="s.getStat(si)?.map"><img src="img/map-tiny.png" title="Show map"/></a></div>
                                     <div class="stat-label">{{s.getStat(si)?.label}}</div>
                                     <div class="stat-aqi">{{s.getStat(si)?.aqi}}</div>
                                     <div class="stat-pm">{{s.getStat(si)?.pm}} µg/m3</div>
