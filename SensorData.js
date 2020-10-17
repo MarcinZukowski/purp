@@ -69,7 +69,15 @@ class SensorData{
     {
         this.clearError();
 
-        this.state().timeline = data;
+        let state = this.state();
+        if (state.timeline) {
+            // Add to existing timeline, keep sorted
+            state.timeline.feeds = state.timeline.feeds.concat(data.feeds)
+                .sort((a, b) => (a.created_at < b.created_at) ? -1 : (a.created_at > b.created_at) ? 1 : 0);
+        } else {
+            state.timeline = data;
+        }
+
         this.setStatus("Drawing chart");
         this.drawChart();
         this.setStatus("Chart ready");
@@ -191,7 +199,8 @@ class SensorData{
         ["3 hours", 3 * HOUR],
         ["1 day", 1 * DAY],
         ["1 week", 1 * WEEK],
-        ["4 weeks", 4 * WEEK]
+        ["4 weeks", 4 * WEEK],
+        ["6 months", 26 * WEEK],
     ];
 
     drawChart()
@@ -207,6 +216,7 @@ class SensorData{
             return null;
         }
         let my_series = {
+                    id: `series-${this.id}`,
                     name: this.label,
                     color: this.color,
                     data: timeline.feeds.map(
@@ -309,13 +319,28 @@ class SensorData{
     drawChartHC()
     {
         let my_series = this.computeSeries();
+        my_series.marker = {enabledThreshold: 3}
         my_series.lineWidth = (this.index === 0) ? 2 : 1;
+
+        // Round values down to 2 minutes, to align series data points
+        const rounding = 2 * MINUTE;
         my_series.data = my_series.data.map(
-            v => [new Date(v[0]).getTime(), v[1]]
+            v => [
+                Math.floor(new Date(v[0]).getTime() / rounding) * rounding,
+                v[1]
+            ]
         );
 
         if (globalState.chart) {
-            globalState.chart.addSeries(my_series, true);
+            // Existing chart
+            let series = globalState.chart.get(my_series.id);
+            if (series) {
+                // Existing series
+                series.setData(my_series.data);
+            } else {
+                // New series
+                globalState.chart.addSeries(my_series, true);
+            }
             return;
         }
 

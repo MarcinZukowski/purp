@@ -21,15 +21,43 @@ class PurpleAirApi {
         let api_key = sensor.results.THINGSPEAK_PRIMARY_ID_READ_KEY;
         let field = 2;
 
-        let four_weeks = 1000 * 3600 * 24 * 7 * 4;
-        let start = new Date(Date.now() - four_weeks).toDateString();
-        let average = 10;
+        // We'll be fetching data in multiple requests, as it seems
+        // it's tricky to get thingspeak to return all the data we want
+        // in one go.
+        // Also, we want higher resolutions for more recent data.
+        let rangesToFetch = [
+            // after       resulution(minutes)
+            [  6 * HOUR,     1],  // last 6h at max resolution
+            [  1 * WEEK,    10],  // last week at 10m
+            [  2 * WEEK,    60],  // previous 3(+1) weeks at 1h
+            [  3 * WEEK,    60],
+            [  4 * WEEK,    60],
+            [ 26 * WEEK,   240],  // previous 5(+1) months by 4 h
+        ];
 
-        let url = `https://api.thingspeak.com/channels/${channel}/fields/${field}.json?start=${start}&offset=0&round=2&average=${average}&api_key=${api_key}`
-        let errorFunc = function(sensor) { sensor.raiseError("Can't load timeline data"); }.bind(this, sensor);
-        let successFunc = sensor.consumeTimelineData.bind(sensor);
+        // Helper to format dates in a way thingspeak likes them
+        function dateString(ago) {
+            return moment(Date.now() - ago).format("YYYY-MM-DD HH:mm:ss")
+        }
 
-        this.makeTheCall(url, errorFunc, successFunc);
+        let offset = - new Date().getTimezoneOffset() / 60;
+        let lastStart = null;
+
+        for (let r = 0; r < rangesToFetch.length; r++) {
+            let range = rangesToFetch[r];
+            let avg = range[1];
+            let start = range[0];
+            let startStr = dateString(start);
+            // We fetch until the data previously fetched
+            let endStr = lastStart ? dateString(lastStart + avg) : "";
+            lastStart = start;
+
+            let url = `https://api.thingspeak.com/channels/${channel}/fields/${field}.json?start=${startStr}&end=${endStr}&offset=${offset}&round=2&average=${avg}&api_key=${api_key}`
+            let errorFunc = function(sensor) { sensor.raiseError("Can't load timeline data"); }.bind(this, sensor);
+            let successFunc = sensor.consumeTimelineData.bind(sensor);
+
+            this.makeTheCall(url, errorFunc, successFunc);
+        }
     }
 
     static makeTheCall(url, errorFunc, successFunc)
