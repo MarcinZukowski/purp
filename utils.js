@@ -139,6 +139,7 @@ function fahrenheitToColor(temp)
 }
 
 const SECOND = 1000;
-const HOUR = 3600 * SECOND;
+const MINUTE = 60 * SECOND;
+const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 const WEEK = 7 * DAY;
