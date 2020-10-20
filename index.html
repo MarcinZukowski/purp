@@ -43,9 +43,14 @@
 <div id="app">
 
     <div class="app-title">
-        <img src="img/icon.png" width="32" height="32" title="Purp!">
+        <img src="img/icon.png" width="32" height="32" title="Purp!" alt="Purp!">
         <b>Purp</b>
         (<a href="https://www.github.com/MarcinZukowski/purp">github</a>)
+
+        <label class="btn btn-info" style="float: right">
+            <input type="checkbox" class="form-check-input" id="reloadCheck" checked>
+            Reload every 10 minutes
+        </label>
     </div>
 
     <div v-if="!error">

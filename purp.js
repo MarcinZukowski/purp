@@ -1,3 +1,5 @@
+const RELOAD_TIMEOUT = 10 * MINUTE;
+
 let _statsInfo = [
     ["v",      0, "Real Time"],
     ["v1",    10, "10 min"],
@@ -56,4 +58,11 @@ function main()
         data.sensors.push(sensor);
         sensor.loadData();
     })
+
+    setInterval(() => {
+        if ($("#reloadCheck").prop('checked')) {
+            location.reload();
+        }
+        log("Reloading disabled");
+    }, RELOAD_TIMEOUT);
 }
