@@ -1,0 +1,33 @@
+html, body{
+    height: 100%;
+}
+
+body {
+    background-color: aliceblue;
+    color: black;
+    font-family: Consolas;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+    border: 5px solid black;
+}
+
+#menu {
+    background-color: #0004;
+    width: 50%;
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translate(-50%, 0%);
+    border: 2px solid black;
+    text-align: center;
+    padding: 5px;
+}
+
+#tm {
+    color: yellow;
+    font-size: 20pt;
+    text-shadow: red 0px 0px 2px;
+}

@@ -1,2 +1,5 @@
 .idea
 priv-*
+.DS_Store
+purp-map-data/data-cache
+purp-map-data/*.json*

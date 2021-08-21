@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Purp Map</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinycolor/1.4.1/tinycolor.min.js" integrity="sha512-RozPeKxKPtXNqvICs7iMDchhJmypo89PxwY6poaAa7TyED7PgwPbBcsAhLwzcEQf/kRwbOnYRvSezQ5CMqHjIA==" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/tinygradient@1.1.2/browser.min.js"></script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAyHKl6xuWgFtTADITkEkILL8aCMmwy-rs&libraries=visualization"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/fzstd/umd/index.js"></script>
+
+    <script type="text/javascript" src="utils.js"></script>
+    <script type="text/javascript" src="PurpleAirApi.js"></script>
+    <script type="text/javascript" src="purp-map.js"></script>
+
+    <link rel="stylesheet" href="purp-map.css">
+</head>
+
+<body onload="init()">
+
+<div id="map"></div>
+<div id="menu">
+    <div id="tm">Loading...</div>
+    <input id="time-slider" type="range" class="form-range" onchange="updateTimeSlider(this.value);">
+</div>
+</body>
+</html>
