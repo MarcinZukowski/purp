@@ -36,7 +36,14 @@ function animate()
     let DELAY = 100;
     let HOUR_SEC = 3600;
     window.setInterval(() => {
+        if (!map) {
+            return;
+        }
         bounds = map.getBounds();
+        if (!bounds) {
+            return;
+        }
+
         curTm = curTm + HOUR_SEC;
         if (curTm > maxTm) {
             curTm = minTm;
@@ -155,7 +162,7 @@ function consume(data)
     animate()
 }
 
-function init()
+function init2()
 {
     var sylvan = new google.maps.LatLng(37.382, -122.064);
 
@@ -176,4 +183,16 @@ function init()
     } else {
         fetch(dataFile).then(data=>data.json()).then(consume);
     }
+}
+
+function init()
+{
+    let key = GOOGLE_MAPS_API_KEY;
+    if (!key) {
+        alert("Google maps key missing");
+        return;
+    }
+    console.log(`Using api key: ${key}`);
+    let maps_url = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=visualization`
+    $.getScript(maps_url, init2);
 }
