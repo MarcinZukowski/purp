@@ -93,6 +93,7 @@ td.temp {
 
 #log {
     height: 200px;
+    max-height: 200px;
     font-size: 10pt;
     position: fixed;
     bottom: 0;
