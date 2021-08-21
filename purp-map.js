@@ -162,20 +162,37 @@ function consume(data)
     animate()
 }
 
+function update_url()
+{
+    let zoom = map.getZoom();
+    let center = map.getCenter();
+
+    url = `${window.location.pathname}?zoom=${zoom}&lat=${center.lat()}&lng=${center.lng()}`;
+    window.history.pushState('page2', 'Purp-Map', url);
+
+    return true;
+}
+
 function init2()
 {
-    var sylvan = new google.maps.LatLng(37.382, -122.064);
-
     let elem = document.getElementById('map');
 
 //    let mapTypeId = "terrain";
     let mapTypeId = "roadmap";
 
+    // Handle optional map parameters
+    let zoom = parseInt($.QueryString.zoom || "12");
+    let lat = parseFloat($.QueryString.lat || "37.382");
+    let lng = parseFloat($.QueryString.lng || "-122.064");
+
     map = new google.maps.Map(elem, {
-        center: sylvan,
-        zoom: 12,
+        center: new google.maps.LatLng(lat, lng),
+        zoom: zoom,
         mapTypeId: mapTypeId
     });
+
+    map.addListener('zoom_changed', update_url);
+    map.addListener('center_changed', update_url);
 
     const dataFile = "purp-map-data/preproc.json" + (USE_ZSTD ? ".zst" : "")
     if (USE_ZSTD) {
