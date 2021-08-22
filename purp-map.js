@@ -1,6 +1,5 @@
 // See also: https://gispub.epa.gov/airnow/?xmin=-13664250.073993878&ymin=4437038.424618474&xmax=-13515534.191762239&ymax=4531093.194773805&clayer=none&mlayer=ozonepm
 // ●
-
 const USE_ZSTD = true;
 
 var map;
@@ -33,7 +32,7 @@ function showMarkerInfo(rec)
 
 function animate()
 {
-    let DELAY = 100;
+    let DELAY = 1000;
     let HOUR_SEC = 3600;
     window.setInterval(() => {
         if (!map) {
@@ -46,6 +45,7 @@ function animate()
 
         curTm = curTm + HOUR_SEC;
         if (curTm > maxTm) {
+            return;
             curTm = minTm;
         }
 
@@ -89,6 +89,8 @@ function animate()
 
 function consume(data)
 {
+    runGL();
+
     if (USE_ZSTD) {
         const compressedBuf = data;
         const compressed = new Uint8Array(compressedBuf);
@@ -173,11 +175,9 @@ function update_url()
     return true;
 }
 
-function init2()
-{
+async function initMap() {
     let elem = document.getElementById('map');
 
-//    let mapTypeId = "terrain";
     let mapTypeId = "roadmap";
 
     // Handle optional map parameters
@@ -188,18 +188,26 @@ function init2()
     map = new google.maps.Map(elem, {
         center: new google.maps.LatLng(lat, lng),
         zoom: zoom,
-        mapTypeId: mapTypeId
+        mapTypeId: mapTypeId,
+        mapId: "44f4acbc0b00dbf9"
     });
+    return map;
+}
+
+async function init2()
+{
+    map = await initMap();
 
     map.addListener('zoom_changed', update_url);
     map.addListener('center_changed', update_url);
 
-    const dataFile = "purp-map-data/preproc.json" + (USE_ZSTD ? ".zst" : "")
+    const dataFile = "purp-map-data/preproc-small.json" + (USE_ZSTD ? ".zst" : "")
     if (USE_ZSTD) {
         fetch(dataFile).then(data => data.arrayBuffer()).then(consume);
     } else {
         fetch(dataFile).then(data=>data.json()).then(consume);
     }
+
 }
 
 function init()
@@ -210,6 +218,6 @@ function init()
         return;
     }
     console.log(`Using api key: ${key}`);
-    let maps_url = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=visualization`
+    let maps_url = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=&v=beta`
     $.getScript(maps_url, init2);
 }
