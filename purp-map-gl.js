@@ -4,6 +4,7 @@ function runGL(withMaps)
 
     var renderer, scene, camera, clock, stats, uniforms;
     var bufferScene, bufferTexture, bufferRenderer;
+    var composer;
 
     var grad;
 
@@ -11,17 +12,26 @@ function runGL(withMaps)
 
     var vertexShader = `
 #define GLSLIFY 1
+varying vec2 v_uv;
 void main() {
+    v_uv = uv;
     gl_Position = vec4(position, 1.0);
 }
 `;
 
     var fragmentShader = `
 #define GLSLIFY 1
+uniform sampler2D u_texture;
+varying vec2 v_uv;
+
 void main() {
-    vec2 v = gl_FragCoord.xy;
+
+//    vec2 v = gl_FragCoord.xy;
     // gl_FragColor = vec4(fract((v.x + 3.0 * v.y) / 30.0), fract(v.x / 50.0), fract(v.y / 90.0), 0.1);
-    gl_FragColor = vec4(0.0, 0.0, 0.5, 0.6);
+//    gl_FragColor = vec4(0.0, 0.0, 0.5, 0.6);
+
+    vec3 pixel_color = texture2D(u_texture, uv).rgb;
+    gl_FragColor = vec4(pixel_color, 1.0);
 }    
 `;
 
@@ -40,13 +50,20 @@ void main() {
     {
         await new Promise(resolve => {
             console.log("=== loading");
-            grad = new THREE.TextureLoader().load('radial-gradient.png', resolve);
+            grad = new THREE.TextureLoader().load('radial-gradient.png', () => {
+                console.log("=== resolve called");
+                resolve()
+            });
             console.log("=== loading started");
         });
         console.log("=== returned from loading")
     }
 
     async function initScene() {
+
+        console.log("calling loadGraad")
+        await loadGrad();
+        console.log("called loadGrad")
 
         // Initialize the scene
         scene = new THREE.Scene();
@@ -58,7 +75,12 @@ void main() {
         var geometry = new THREE.PlaneBufferGeometry(2, 2);
 
         // Define the shader uniforms
-        uniforms = {};
+        uniforms = {
+            u_texture : {
+                type : "t",
+                value : null
+            }
+        };
 
         // Create the shader material
         var material = new THREE.ShaderMaterial({
@@ -80,7 +102,6 @@ void main() {
         var mesh = new THREE.Mesh(geometry, material);
 //        bufferScene.add(mesh);
 
-        await loadGrad();
 
         if (true) {
             const square = new THREE.PlaneBufferGeometry(0.2, 0.2);
@@ -123,6 +144,8 @@ void main() {
         renderer.setRenderTarget(bufferTexture);
         renderer.clear();
 
+        console.log(grad.version);
+
         const tmpScene = new THREE.Scene();
         const square = new THREE.PlaneBufferGeometry(0.4, 0.4);
         const mat = new THREE.MeshBasicMaterial({
@@ -147,8 +170,6 @@ void main() {
             mesh.position.setX((Math.sin(frame + i * 1.0) + Math.sin(frame + i * 1.1)) / 2.5);
             mesh.position.setY((Math.sin(frame + i * 1.4) + Math.sin(frame + i * 1.3)) / 2.5);
             mat.color.setHSL(0.25 + i * 0.5/20, 1.0, 0.5);
-            // mat.color.setRGB(1, 0, 0);
-            // mat.color.setHSL(0, 1.0, 0.8);
             renderer.render(tmpScene, camera);
         }
 
@@ -191,16 +212,15 @@ void main() {
         renderer.setSize( window.innerWidth, window.innerHeight );
 //        document.body.appendChild( renderer.domElement );
 
-        initScene();
-
         function animate() {
             render();
-            setTimeout( function() {
-                requestAnimationFrame( animate );
-            }, 1000 / 10 );
+            setTimeout(function () {
+                requestAnimationFrame(animate);
+            }, 1000 / 10);
         }
-        animate();
 
+        initScene().then(() => {
+            animate();
+        });
     }
-
 }
