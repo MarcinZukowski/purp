@@ -5,7 +5,7 @@ function runGL(withMaps)
     var renderer, camera, uniforms;
     var bufferTexture
 
-    var grad;
+    var grad, grad2;
     var shaderMat;
 
     var webglOverlayView;
@@ -33,26 +33,27 @@ varying vec2 vUv;
 
 void main() {
     vec2 v = gl_FragCoord.xy;
-    float MUL = 0.5;
+    float MUL = 0.0;
     vec3 pixel_color = vec3(fract((v.x + 3.0 * v.y) / 30.0) * MUL, fract(v.x / 50.0) * MUL, fract(v.y / 90.0) * MUL);
 
     pixel_color += texture2D(u_texture, vUv).rgb;
+    float alpha = texture2D(u_texture, vUv).a;
     
-    gl_FragColor = vec4(pixel_color, 1.0);
+    alpha = alpha < 0.001 ? 0.0 : 1.0;
+    pixel_color *= 10.0; 
+    
+    gl_FragColor = vec4(pixel_color, alpha);
 }    
 `;
 
     async function loadGrad()
     {
         await new Promise(resolve => {
-            console.log("=== loading");
-            grad = new THREE.TextureLoader().load('radial-gradient.png', () => {
-                console.log("=== resolve called");
-                resolve()
-            });
-            console.log("=== loading started");
+            grad = new THREE.TextureLoader().load('radial-gradient.png', resolve);
         });
-        console.log("=== returned from loading")
+        await new Promise(resolve => {
+            grad2 = new THREE.TextureLoader().load('radial-gradient2.png', resolve);
+        });
     }
 
     async function initScene() {
@@ -89,29 +90,39 @@ void main() {
         console.log(grad.version);
 
         const tmpScene = new THREE.Scene();
-        const square = new THREE.PlaneBufferGeometry(0.4, 0.4);
+        const SIZE = 0.8;
+        const square = new THREE.PlaneBufferGeometry(SIZE, SIZE);
         const mat = new THREE.MeshBasicMaterial({
-            map: grad,
+            alphaMap: grad2,
+            alphaTest: 0.001,
             blending: THREE.CustomBlending,
             blendEquation: THREE.AddEquation,
             blendSrc: THREE.SrcAlphaFactor,
-            blendDst: THREE.OneMinusSrcAlphaFactor,
-            opacity: 0.5,
+            blendDst: THREE.DstAlphaFactor,
+            blendEquationAlpha: THREE.AddEquation,
+            blendSrcAlpha: THREE.OneFactor,
+            blendDstAlpha: THREE.OneFactor,
+            opacity: 0.2,
+            transparent: true,
         });
 
         let mesh = new THREE.Mesh(square, mat);
         tmpScene.add(mesh);
 
-        frame += 0.05
+        frame += 1
 
-        if (frame > 5) {
+        if (frame > 100) {
             return;
         }
 
-        for (let i = 0; i < 20; i++) {
-            mesh.position.setX((Math.sin(frame + i * 1.0) + Math.sin(frame + i * 1.1)) / 2.5);
-            mesh.position.setY((Math.sin(frame + i * 1.4) + Math.sin(frame + i * 1.3)) / 2.5);
-            mat.color.setHSL(0.25 + i * 0.5/20, 1.0, 0.5);
+        const add = frame * 0.07;
+
+        let COUNT = 3;
+        let LUM = 0.6;
+        for (let i = 0; i < COUNT; i++) {
+            mesh.position.setX((Math.sin(add + i * 1.0) + Math.sin(add + i * 1.1)) / 2.5);
+            mesh.position.setY((Math.sin(add + i * 1.4) + Math.sin(add + i * 1.3)) / 2.5);
+            mat.color.setHSL(0.25 + i * 0.5/COUNT, 1.0, LUM);
             renderer.render(tmpScene, camera);
         }
 
@@ -194,7 +205,7 @@ void main() {
             render();
             setTimeout(function () {
                 requestAnimationFrame(animate);
-            }, 1000 / 10);
+            }, 1000 / 20);
         }
 
         initScene().then(() => {
