@@ -89,8 +89,6 @@ function animate()
 
 function consume(data)
 {
-    runGL();
-
     if (USE_ZSTD) {
         const compressedBuf = data;
         const compressed = new Uint8Array(compressedBuf);
@@ -194,12 +192,19 @@ async function initMap() {
     return map;
 }
 
-async function init2()
+function initWithGL()
+{
+    runGL(false);
+}
+
+async function initWithMaps()
 {
     map = await initMap();
 
     map.addListener('zoom_changed', update_url);
     map.addListener('center_changed', update_url);
+
+    runGL(true);
 
     const dataFile = "purp-map-data/preproc-small.json" + (USE_ZSTD ? ".zst" : "")
     if (USE_ZSTD) {
@@ -212,6 +217,9 @@ async function init2()
 
 function init()
 {
+    initWithGL();
+    return;
+
     let key = GOOGLE_MAPS_API_KEY;
     if (!key) {
         alert("Google maps key missing");
@@ -219,5 +227,5 @@ function init()
     }
     console.log(`Using api key: ${key}`);
     let maps_url = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=&v=beta`
-    $.getScript(maps_url, init2);
+    $.getScript(maps_url, initWithMaps);
 }
