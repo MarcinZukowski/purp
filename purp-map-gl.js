@@ -2,49 +2,45 @@ function runGL(withMaps)
 {
     'use strict';
 
-    var renderer, scene, camera, clock, stats, uniforms;
-    var bufferScene, bufferTexture, bufferRenderer;
-    var composer;
+    var renderer, camera, uniforms;
+    var bufferTexture
 
     var grad;
+    var shaderMat;
 
     var webglOverlayView;
 
     var vertexShader = `
 #define GLSLIFY 1
-varying vec2 v_uv;
+
+varying vec2 vUv;
+
 void main() {
-    v_uv = uv;
-    gl_Position = vec4(position, 1.0);
+//    gl_Position = vec4(position, 1.0);
+    vUv = uv;
+
+    gl_Position =   projectionMatrix * 
+                    modelViewMatrix * 
+                    vec4(position,1.0);
 }
 `;
 
     var fragmentShader = `
 #define GLSLIFY 1
 uniform sampler2D u_texture;
-varying vec2 v_uv;
+
+varying vec2 vUv;
 
 void main() {
+    vec2 v = gl_FragCoord.xy;
+    float MUL = 0.5;
+    vec3 pixel_color = vec3(fract((v.x + 3.0 * v.y) / 30.0) * MUL, fract(v.x / 50.0) * MUL, fract(v.y / 90.0) * MUL);
 
-//    vec2 v = gl_FragCoord.xy;
-    // gl_FragColor = vec4(fract((v.x + 3.0 * v.y) / 30.0), fract(v.x / 50.0), fract(v.y / 90.0), 0.1);
-//    gl_FragColor = vec4(0.0, 0.0, 0.5, 0.6);
-
-    vec3 pixel_color = texture2D(u_texture, uv).rgb;
+    pixel_color += texture2D(u_texture, vUv).rgb;
+    
     gl_FragColor = vec4(pixel_color, 1.0);
 }    
 `;
-
-    function initRenderer() {
-        // Initialize the WebGL renderer
-        renderer = new THREE.WebGLRenderer();
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(window.innerWidth, window.innerHeight);
-
-        // Add the renderer to the sketch container
-        var container = document.getElementById("map");
-        container.appendChild(renderer.domElement);
-    }
 
     async function loadGrad()
     {
@@ -65,76 +61,22 @@ void main() {
         await loadGrad();
         console.log("called loadGrad")
 
-        // Initialize the scene
-        scene = new THREE.Scene();
-
         // Initialize the camera
         camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-        // Create the plane geometry
-        var geometry = new THREE.PlaneBufferGeometry(2, 2);
-
-        // Define the shader uniforms
-        uniforms = {
-            u_texture : {
-                type : "t",
-                value : null
-            }
-        };
-
-        // Create the shader material
-        var material = new THREE.ShaderMaterial({
-            uniforms: uniforms,
-//            vertexShader : vertexShader,
-            fragmentShader: fragmentShader,
-            transparent: true
-        });
-
-        // Create a different scene to hold our buffer objects
-        bufferScene = new THREE.Scene();
         // Create the texture that will store our result
         bufferTexture = new THREE.WebGLRenderTarget( 512, 512, {
             minFilter: THREE.LinearFilter,
             magFilter: THREE.NearestFilter,
             wrapS: THREE.RepeatWrapping});
 
-        // Create the mesh and add it to the scene
-        var mesh = new THREE.Mesh(geometry, material);
-//        bufferScene.add(mesh);
-
-
-        if (true) {
-            const square = new THREE.PlaneBufferGeometry(0.2, 0.2);
-            const mat = new THREE.MeshBasicMaterial({
-                map: grad,
-                blending: THREE.CustomBlending,
-                blendEquation: THREE.AddEquation,
-                blendSrc: THREE.OneFactor,
-                blendDst: THREE.OneFactor,
-                color: 0xff8080,
-            });
-
-            for (let i = 0; i < 20; i++) {
-                let mesh = new THREE.Mesh(square, mat);
-                bufferScene.add(mesh);
-                mesh.position.setX(Math.random() - 0.5);
-                mesh.position.setY(Math.random() - 0.5);
-            }
-        }
-
-        var geo2 = new THREE.PlaneBufferGeometry(0.5, 1.0);
-        const mat2 = new THREE.MeshBasicMaterial({
-            map: bufferTexture.texture,
-            blending: THREE.CustomBlending,
-            blendEquation: THREE.AddEquation,
-            blendSrc: THREE.OneFactor,
-            blendDst: THREE.ZeroFactor,
+        // Create the shader material
+        shaderMat = new THREE.ShaderMaterial({
+            uniforms: uniforms,
+            vertexShader : vertexShader,
+            fragmentShader: fragmentShader,
+            transparent: true
         });
-        var mesh2 = new THREE.Mesh(geo2, mat2);
-        scene.add(mesh2);
-
-        console.log(scene.toJSON());
-        console.log(bufferScene.toJSON());
     }
 
     var doneCounter = 100;
@@ -173,8 +115,44 @@ void main() {
             renderer.render(tmpScene, camera);
         }
 
+//        console.log(shaderMat);
+//        shaderMat.uniforms.u_texture.value = bufferTexture.texture;
+//        shaderMat.uniforms.u_texture.texture = bufferTexture.texture;
+
+        // Define the shader uniforms
+        uniforms = {
+            u_texture : {
+                type : "t",
+                value : bufferTexture.texture
+            }
+        };
+
+//        uniforms.u_texture.value = grad;
+//        uniforms.u_texture.texture = grad;
+
+        shaderMat = new THREE.ShaderMaterial({
+            uniforms: uniforms,
+            vertexShader : vertexShader,
+            fragmentShader: fragmentShader,
+            transparent: true
+        });
+
+        // Initialize the scene
+        const scene2 = new THREE.Scene();
+
+        const geo2 = new THREE.PlaneBufferGeometry(0.5, 1.2);
+        const mat2 = new THREE.MeshBasicMaterial({
+            map: bufferTexture.texture,
+            blending: THREE.CustomBlending,
+            blendEquation: THREE.AddEquation,
+            blendSrc: THREE.OneFactor,
+            blendDst: THREE.ZeroFactor,
+        });
+        const mesh2 = new THREE.Mesh(geo2, shaderMat);
+        scene2.add(mesh2);
+
         renderer.setRenderTarget(null);
-        renderer.render(scene, camera);
+        renderer.render(scene2, camera);
         renderer.resetState();
     }
 
