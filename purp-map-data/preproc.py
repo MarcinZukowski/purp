@@ -36,6 +36,10 @@ for fname in files:
         print("No geo info, skipping")
         continue
 
+    if meta.get("ParentID"):
+        print("Has a parent, skipping")
+        continue
+
     optimized = []
 
     last = 0
