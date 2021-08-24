@@ -217,9 +217,6 @@ async function initWithMaps()
 
 function init()
 {
-    initWithGL();
-    return;
-
     let key = GOOGLE_MAPS_API_KEY;
     if (!key) {
         alert("Google maps key missing");

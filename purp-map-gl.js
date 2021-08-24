@@ -52,6 +52,9 @@ void main() {
     float alpha = texture2D(u_texture, vUv).a;
     alpha = alpha < CUTOFF ? alpha / CUTOFF : 1.0;
     
+//    pixel_color += vec3(0.0, 0.0, 0.0);
+//    alpha = 1.0;
+    
     gl_FragColor = vec4(pixel_color, alpha);
 }    
 `;
@@ -83,12 +86,13 @@ void main() {
 
     function render() {
         frame += 1
-        if (frame > 100) {
+        if (frame > 1000) {
             return;
         }
         const add = frame * 0.03;
 
         renderer.setRenderTarget(bufferTexture);
+        renderer.setClearColor(new THREE.Color( 0x000000 ), 1.0);
         renderer.clear();
 
         console.log(grad.version);
@@ -134,13 +138,15 @@ void main() {
             uniforms: uniforms,
             vertexShader : vertexShader,
             fragmentShader: fragmentShader,
-            transparent: true
+            transparent: true,
+            blending: THREE.AdditiveBlending,
         });
 
         // Initialize the scene
         const scene2 = new THREE.Scene();
 
         const geo2 = new THREE.PlaneBufferGeometry(0.5, 1.2);
+        mat.color.setHex(0xff00ff);
         const mesh2 = new THREE.Mesh(geo2, shaderMat);
         scene2.add(mesh2);
 
@@ -150,30 +156,32 @@ void main() {
     }
 
     if (withMaps) {
-        webglOverlayView = new google.maps.WebglOverlayView();
+        initScene().then(() => {
+            webglOverlayView = new google.maps.WebglOverlayView();
 
-        webglOverlayView.onAdd = () => {
-            console.log("foo");
-            initScene();
-        };
+            webglOverlayView.onAdd = () => {
+            };
 
-        webglOverlayView.onContextRestored = (gl) => {
-            fun("---------------onContextRestored");
-            renderer = new THREE.WebGLRenderer({
-                canvas: gl.canvas,
-                context: gl,
-                ...gl.getContextAttributes(),
-            });
+            webglOverlayView.onContextRestored = (gl) => {
+                fun("---------------onContextRestored");
+                renderer = new THREE.WebGLRenderer({
+                    canvas: gl.canvas,
+                    context: gl,
+                    ...gl.getContextAttributes(),
+                });
 
-            renderer.autoClear = false;
-        };
+                renderer.autoClear = false;
+            };
 
-        webglOverlayView.onDraw = (gl, coordinateTransformer) => {
+            webglOverlayView.onDraw = (gl, coordinateTransformer) => {
+                webglOverlayView.requestRedraw();
+                render();
+            }
+
+            webglOverlayView.setMap(map);
             webglOverlayView.requestRedraw();
-            render();
-        }
 
-        webglOverlayView.setMap(map);
+        });
     } else {
         $("#menu").html("");
         $("#map").html(`<canvas id="glCanvas" height="100%" width="100%"></canvas>`);
