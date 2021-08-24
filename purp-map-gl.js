@@ -1,3 +1,4 @@
+var webglOverlayView;
 
 function runGL(withMaps)
 {
@@ -11,8 +12,6 @@ function runGL(withMaps)
     var visScene, visMat, visMesh;
 
     var grad;
-
-    var webglOverlayView;
 
     var vertexShader = `
 #define GLSLIFY 1
@@ -39,10 +38,23 @@ vec3 hsv2rgb(vec3 c)
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
+const vec4 empty = vec4(0.0, 0.0, 0.0, 0.0);
+
 void main() {
+    float alpha = texture2D(u_texture, vUv).a;
+    if (alpha == 0.0) {
+        gl_FragColor = empty;
+        return;
+    }
+
+    // Compute alpha
+    const float CUTOFF = 0.1;
+    const float MAX = 0.5;
+    alpha = alpha < CUTOFF ? alpha / CUTOFF * MAX : MAX;
+
     // Compute pixel color. 
     vec3 pixel_color = texture2D(u_texture, vUv).rgb;
-    
+
     // Adjust to range GREEN..PURPLE - note, we need to wrap around HSV 
     const float GREEN = 1.0 + 1.0/3.0;
     const float PURPLE = 4.0/6.0;
@@ -52,13 +64,6 @@ void main() {
 
     vec3 hsv = vec3(H, 1.0, 1.0);
     pixel_color = hsv2rgb(hsv);
-    
-    float CUTOFF = 0.1;
-    float alpha = texture2D(u_texture, vUv).a;
-    alpha = alpha < CUTOFF ? alpha / CUTOFF : 1.0;
-    
-//    pixel_color += vec3(0.0, 0.0, 0.0);
-//    alpha = 1.0;
     
     gl_FragColor = vec4(pixel_color, alpha);
 }    
@@ -95,6 +100,7 @@ void main() {
             opacity: 0.5,
             transparent: true,
         });
+
         const SIZE = 2.0;
         const square = new THREE.PlaneBufferGeometry(SIZE, SIZE);
         visMesh = new THREE.Mesh(square, visMat);
@@ -117,8 +123,14 @@ void main() {
             uniforms: uniforms,
             vertexShader : vertexShader,
             fragmentShader: fragmentShader,
+            blending: THREE.CustomBlending,
+            blendEquation: THREE.AddEquation,
+            blendSrc: THREE.SrcAlphaFactor,
+            blendDst: THREE.OneMinusSrcAlphaFactor,
+            blendEquationAlpha: THREE.AddEquation,
+            blendSrcAlpha: THREE.ZeroFactor,
+            blendDstAlpha: THREE.OneFactor,
             transparent: true,
-            blending: THREE.AdditiveBlending,
         });
 
         // Initialize the shader scene
@@ -129,57 +141,6 @@ void main() {
     }
 
     var frame = 0;
-    var add = 0;
-
-    function renderMovingCircles()
-    {
-        const tmpScene = new THREE.Scene();
-        const SIZE = 0.8;
-        const square = new THREE.PlaneBufferGeometry(SIZE, SIZE);
-        const mat = new THREE.MeshBasicMaterial({
-            alphaMap: grad,
-//            alphaTest: 0.05,
-            blending: THREE.CustomBlending,
-            blendEquation: THREE.AddEquation,
-            blendSrc: THREE.SrcAlphaFactor,
-            blendDst: THREE.OneFactor,
-            blendEquationAlpha: THREE.AddEquation,
-            blendSrcAlpha: THREE.OneFactor,
-            blendDstAlpha: THREE.OneFactor,
-            opacity: 0.5,
-            transparent: true,
-        });
-
-        let mesh = new THREE.Mesh(square, mat);
-        tmpScene.add(mesh);
-
-        let COUNT = 10;
-        let FRAC = 0.05;
-        for (let i = 0; i < COUNT; i++) {
-            mesh.position.setX((Math.sin(add + i * 1.0) + Math.sin(add + i * 1.1)) / 2.5);
-            mesh.position.setY((Math.sin(add + i * 1.4) + Math.sin(add + i * 1.3)) / 2.5);
-            mat.color.setRGB(FRAC * i / (COUNT - 1 || 1), FRAC, 1.0);
-            renderer.render(tmpScene, camera);
-        }
-    }
-
-    // From:
-    // https://stackoverflow.com/questions/25219346/how-to-convert-from-x-y-screen-coordinates-to-latlng-google-maps
-    function latLng2Point(latLng, map) {
-        var topRight = map.getProjection().fromLatLngToPoint(map.getBounds().getNorthEast());
-        var bottomLeft = map.getProjection().fromLatLngToPoint(map.getBounds().getSouthWest());
-        var scale = Math.pow(2, map.getZoom());
-        var worldPoint = map.getProjection().fromLatLngToPoint(latLng);
-        return new google.maps.Point((worldPoint.x - bottomLeft.x) * scale, (worldPoint.y - topRight.y) * scale);
-    }
-
-    function point2LatLng(point, map) {
-        var topRight = map.getProjection().fromLatLngToPoint(map.getBounds().getNorthEast());
-        var bottomLeft = map.getProjection().fromLatLngToPoint(map.getBounds().getSouthWest());
-        var scale = Math.pow(2, map.getZoom());
-        var worldPoint = new google.maps.Point(point.x / scale + bottomLeft.x, point.y / scale + topRight.y);
-        return map.getProjection().fromPointToLatLng(worldPoint);
-    }
 
     function renderRecords()
     {
@@ -189,7 +150,7 @@ void main() {
         }
 
         const EQUATOR = 40075.0; //km
-        const RANGE = 5.0; // km
+        const RANGE = 25.0; // km
         const DIAM_IN_DEG_X = (RANGE / EQUATOR) * 360.0;
 
         let bounds = map.getBounds();
@@ -198,8 +159,10 @@ void main() {
         let boundsRangeY = boundsNE.lat() - boundsSW.lat();
         let boundsRangeX = boundsNE.lng() - boundsSW.lng();
 
-        let topRight = map.getProjection().fromLatLngToPoint(map.getBounds().getNorthEast());
-        let bottomLeft = map.getProjection().fromLatLngToPoint(map.getBounds().getSouthWest());
+        let mapProjection = map.getProjection();
+
+        let topRight = mapProjection.fromLatLngToPoint(map.getBounds().getNorthEast());
+        let bottomLeft = mapProjection.fromLatLngToPoint(map.getBounds().getSouthWest());
 
         let projLeft = bottomLeft.x;
         let projRight = topRight.x;
@@ -208,54 +171,60 @@ void main() {
         let projRangeX = projRight - projLeft;
         let projRangeY = projBottom - projTop;
 
-        // console.log(projLeft, projRight, projTop, projBottom, projRangeX, projRangeY, boundsRangeX, boundsRangeY, boundsNE, boundsSW);
-
         let FRAC = 0.05;
+        const AQI_MAX = 300;
 
         let yscale = (DIAM_IN_DEG_X / boundsRangeY);
 
+        visScene.clear();
+
         for (let r = 0; r < visibleRecs.length; r++) {
             const rec = visibleRecs[r];
-            let recPoint = map.getProjection().fromLatLngToPoint(rec.position);
+            let recPoint = mapProjection.fromLatLngToPoint(rec.position);
             let glX = 2 * (recPoint.x - projLeft) / projRangeX - 1.0;
             let glY = - (2 * (recPoint.y - projTop) / projRangeY - 1.0);
             let xscale = (DIAM_IN_DEG_X / Math.cos(rec.lat / 180.0) / boundsRangeX);
-            if (r < 5) {
-                console.log(glX, glY, DIAM_IN_DEG_X, boundsRangeY, boundsRangeX, yscale, xscale);
+
+            if (!rec.mesh) {
+                rec.mesh = visMesh.clone();
+                rec.material = visMesh.material.clone();
+                rec.mesh.material = rec.material;
             }
-            visMesh.scale.setX(xscale);
-            visMesh.scale.setY(yscale);
-            visMesh.position.setX(glX);
-            visMesh.position.setY(glY);
+
+            let mesh = rec.mesh;
+            mesh.scale.setX(xscale);
+            mesh.scale.setY(yscale);
+            mesh.position.setX(glX);
+            mesh.position.setY(glY);
+            visScene.add(mesh);
+
             let aqi = rec.currentAqi;
-            const AQI_MAX = 300;
             aqi = Math.min(AQI_MAX, aqi);
             let aqiVal = aqi / AQI_MAX;
-            visMat.color.setRGB(FRAC * aqiVal, FRAC, 1.0);
-            renderer.render(visScene, camera);
+            mesh.material.color.setRGB(FRAC * aqiVal, FRAC, 1.0);
         }
+        renderer.render(visScene, camera);
     }
 
     function render() {
+        renderer.resetState();
+
         frame += 1
         if (frame > 1000) {
-            return;
+//            return;
         }
 //        console.log("frame", frame);
-        add = frame * 0.03;
 
         renderer.setRenderTarget(bufferTexture);
-        renderer.setClearColor(new THREE.Color( 0x000000 ), 1.0);
+        renderer.setClearColor(new THREE.Color( 0x000000 ), 0.0);
         renderer.clear();
 
-//        console.log(grad.version);
-
-//        renderMovingCircles();
         renderRecords();
 
         shaderMat.uniforms.u_texture.value = bufferTexture.texture;
         renderer.setRenderTarget(null);
         renderer.render(shaderScene, camera);
+
         renderer.resetState();
     }
 
@@ -285,7 +254,7 @@ void main() {
             }
 
             webglOverlayView.setMap(map);
-//            webglOverlayView.requestRedraw();
+            webglOverlayView.requestRedraw();
 
         });
     } else {
@@ -294,7 +263,7 @@ void main() {
         let elem = document.getElementById('glCanvas');
         renderer = new THREE.WebGLRenderer({canvas: elem});
         renderer.autoClear = false;
-        renderer.setSize( window.innerWidth, window.innerHeight );
+//        renderer.setSize( window.innerWidth, window.innerHeight );
 //        document.body.appendChild( renderer.domElement );
 
         function animate() {

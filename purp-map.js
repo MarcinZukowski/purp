@@ -11,6 +11,8 @@ var infowindow;
 
 var visibleRecs;
 
+const DELAY = 250;  // ms
+
 function updateTimeSlider(value)
 {
     console.log(value);
@@ -34,7 +36,6 @@ function showMarkerInfo(rec)
 
 function animate()
 {
-    let DELAY = 1000;
     let HOUR_SEC = 3600;
     window.setInterval(() => {
         if (!map) {
@@ -54,7 +55,8 @@ function animate()
         visibleRecs = [];
 
         recs.forEach(rec => {
-            if (!bounds.contains(rec.position)) {
+            let aqi = rec.snaps[curTm];
+            if (!bounds.contains(rec.position) || !aqi) {
                 // Not visible
                 if (rec.visible) {
                     rec.visible = false;
@@ -64,28 +66,23 @@ function animate()
             }
             // Visible
             visibleRecs.push(rec);
+            rec.currentAqi = aqi;
+            return;
             if (!rec.visible) {
                 rec.visible = true;
                 rec.marker.setMap(map);
             }
-            let aqi = rec.snaps[curTm];
-            if (!aqi) {
-                rec.marker.setVisible(false);
-            } else {
-                const MAX_AQI = 300;
-                aqi = Math.min(MAX_AQI, aqi);
-                let perc = Math.trunc(10 * (aqi / MAX_AQI)) * 10;
-                let iconUrl = `purp-map-img/icon-${perc}.png`;
-                rec.icon.url = iconUrl;
-                rec.marker.setIcon(rec.icon);
-                rec.marker.setVisible(true);
-                rec.currentAqi = aqi;
-            }
+            const MAX_AQI = 300;
+            aqi = Math.min(MAX_AQI, aqi);
+            let perc = Math.trunc(10 * (aqi / MAX_AQI)) * 10;
+            let iconUrl = `purp-map-img/icon-${perc}.png`;
+            rec.icon.url = iconUrl;
+            rec.marker.setIcon(rec.icon);
+            rec.marker.setVisible(true);
         });
 
         $("#tm").html(`Time: ${new Date(curTm * 1000)} (${visibleRecs.length}/${recs.length} sensors)`);
-        $("#time-slider").attr("min", minTm).attr("max", maxTm).attr("step", HOUR_SEC).attr("value", curTm).val(curTm)
-
+        $("#time-slider").attr("min", minTm).attr("max", maxTm).attr("step", HOUR_SEC).attr("value", curTm).val(curTm);
     }, DELAY);
 }
 
@@ -151,9 +148,10 @@ function consume(data)
             title: label,
             opacity: 0.5,
             optimized: true,
+            visible: false,
         });
 
-        marker.addListener("click", showMarkerInfo.bind(this, rec));
+//        marker.addListener("click", showMarkerInfo.bind(this, rec));
 
         rec.marker = marker;
         rec.icon = icon;
@@ -209,7 +207,7 @@ async function initWithMaps()
 
     runGL(true);
 
-    const dataFile = "purp-map-data/preproc-small.json" + (USE_ZSTD ? ".zst" : "")
+    const dataFile = "purp-map-data/preproc.json" + (USE_ZSTD ? ".zst" : "")
     if (USE_ZSTD) {
         fetch(dataFile).then(data => data.arrayBuffer()).then(consume);
     } else {
