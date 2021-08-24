@@ -22,3 +22,8 @@ with open("rad.gray", "wb") as f:
             if y == HALF:
                 print(y, x, v)
             f.write(int(v).to_bytes(1, 'little'))
+
+print(f"""
+postprocess with
+convert -size {SIZE}x{SIZE} -depth 8 GRAY:rad.gray rad.png
+""");
