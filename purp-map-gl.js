@@ -1,9 +1,14 @@
+
 function runGL(withMaps)
 {
     'use strict';
 
     var renderer, camera, uniforms;
     var bufferTexture
+
+    var shaderMat, shaderScene;
+
+    var visScene, visMat, visMesh;
 
     var grad;
 
@@ -74,29 +79,60 @@ void main() {
         // Initialize the camera
         camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
+        // Initialize the main scene and objects
+        visScene = new THREE.Scene();
+
+        visMat = new THREE.MeshBasicMaterial({
+            alphaMap: grad,
+//            alphaTest: 0.05,
+            blending: THREE.CustomBlending,
+            blendEquation: THREE.AddEquation,
+            blendSrc: THREE.SrcAlphaFactor,
+            blendDst: THREE.OneFactor,
+            blendEquationAlpha: THREE.AddEquation,
+            blendSrcAlpha: THREE.OneFactor,
+            blendDstAlpha: THREE.OneFactor,
+            opacity: 0.5,
+            transparent: true,
+        });
+        const SIZE = 2.0;
+        const square = new THREE.PlaneBufferGeometry(SIZE, SIZE);
+        visMesh = new THREE.Mesh(square, visMat);
+        visScene.add(visMesh);
+
         // Create the texture that will store our result
         bufferTexture = new THREE.WebGLRenderTarget(512, 512, {
             minFilter: THREE.LinearFilter,
             magFilter: THREE.NearestFilter,
             type: THREE.FloatType,
         });
+
+        // Create a shader pass that will perform conversion from HSV-like values to screen
+        uniforms = {
+            u_texture : {
+                type : "t",
+            }
+        };
+        shaderMat = new THREE.ShaderMaterial({
+            uniforms: uniforms,
+            vertexShader : vertexShader,
+            fragmentShader: fragmentShader,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+        });
+
+        // Initialize the shader scene
+        shaderScene = new THREE.Scene();
+        const geo = new THREE.PlaneBufferGeometry(2.0, 2.0);
+        const mesh = new THREE.Mesh(geo, shaderMat);
+        shaderScene.add(mesh);
     }
 
     var frame = 0;
+    var add = 0;
 
-    function render() {
-        frame += 1
-        if (frame > 1000) {
-            return;
-        }
-        const add = frame * 0.03;
-
-        renderer.setRenderTarget(bufferTexture);
-        renderer.setClearColor(new THREE.Color( 0x000000 ), 1.0);
-        renderer.clear();
-
-        console.log(grad.version);
-
+    function renderMovingCircles()
+    {
         const tmpScene = new THREE.Scene();
         const SIZE = 0.8;
         const square = new THREE.PlaneBufferGeometry(SIZE, SIZE);
@@ -125,35 +161,105 @@ void main() {
             mat.color.setRGB(FRAC * i / (COUNT - 1 || 1), FRAC, 1.0);
             renderer.render(tmpScene, camera);
         }
+    }
 
-        // Define the shader uniforms
-        uniforms = {
-            u_texture : {
-                type : "t",
-                value : bufferTexture.texture
+    // From:
+    // https://stackoverflow.com/questions/25219346/how-to-convert-from-x-y-screen-coordinates-to-latlng-google-maps
+    function latLng2Point(latLng, map) {
+        var topRight = map.getProjection().fromLatLngToPoint(map.getBounds().getNorthEast());
+        var bottomLeft = map.getProjection().fromLatLngToPoint(map.getBounds().getSouthWest());
+        var scale = Math.pow(2, map.getZoom());
+        var worldPoint = map.getProjection().fromLatLngToPoint(latLng);
+        return new google.maps.Point((worldPoint.x - bottomLeft.x) * scale, (worldPoint.y - topRight.y) * scale);
+    }
+
+    function point2LatLng(point, map) {
+        var topRight = map.getProjection().fromLatLngToPoint(map.getBounds().getNorthEast());
+        var bottomLeft = map.getProjection().fromLatLngToPoint(map.getBounds().getSouthWest());
+        var scale = Math.pow(2, map.getZoom());
+        var worldPoint = new google.maps.Point(point.x / scale + bottomLeft.x, point.y / scale + topRight.y);
+        return map.getProjection().fromPointToLatLng(worldPoint);
+    }
+
+    function renderRecords()
+    {
+        if (!visibleRecs) {
+            console.log("----------------- visibleRecs not ready");
+            return;
+        }
+
+        const EQUATOR = 40075.0; //km
+        const RANGE = 5.0; // km
+        const DIAM_IN_DEG_X = (RANGE / EQUATOR) * 360.0;
+
+        let bounds = map.getBounds();
+        let boundsNE = bounds.getNorthEast();
+        let boundsSW = bounds.getSouthWest();
+        let boundsRangeY = boundsNE.lat() - boundsSW.lat();
+        let boundsRangeX = boundsNE.lng() - boundsSW.lng();
+
+        let topRight = map.getProjection().fromLatLngToPoint(map.getBounds().getNorthEast());
+        let bottomLeft = map.getProjection().fromLatLngToPoint(map.getBounds().getSouthWest());
+
+        let projLeft = bottomLeft.x;
+        let projRight = topRight.x;
+        let projTop = topRight.y;
+        let projBottom = bottomLeft.y;
+        let projRangeX = projRight - projLeft;
+        let projRangeY = projBottom - projTop;
+
+        // console.log(projLeft, projRight, projTop, projBottom, projRangeX, projRangeY, boundsRangeX, boundsRangeY, boundsNE, boundsSW);
+
+        let FRAC = 0.05;
+
+        let yscale = (DIAM_IN_DEG_X / boundsRangeY);
+
+        for (let r = 0; r < visibleRecs.length; r++) {
+            const rec = visibleRecs[r];
+            let recPoint = map.getProjection().fromLatLngToPoint(rec.position);
+            let glX = 2 * (recPoint.x - projLeft) / projRangeX - 1.0;
+            let glY = - (2 * (recPoint.y - projTop) / projRangeY - 1.0);
+            let xscale = (DIAM_IN_DEG_X / Math.cos(rec.lat / 180.0) / boundsRangeX);
+            if (r < 5) {
+                console.log(glX, glY, DIAM_IN_DEG_X, boundsRangeY, boundsRangeX, yscale, xscale);
             }
-        };
+            visMesh.scale.setX(xscale);
+            visMesh.scale.setY(yscale);
+            visMesh.position.setX(glX);
+            visMesh.position.setY(glY);
+            let aqi = rec.currentAqi;
+            const AQI_MAX = 300;
+            aqi = Math.min(AQI_MAX, aqi);
+            let aqiVal = aqi / AQI_MAX;
+            visMat.color.setRGB(FRAC * aqiVal, FRAC, 1.0);
+            renderer.render(visScene, camera);
+        }
+    }
 
-        const shaderMat = new THREE.ShaderMaterial({
-            uniforms: uniforms,
-            vertexShader : vertexShader,
-            fragmentShader: fragmentShader,
-            transparent: true,
-            blending: THREE.AdditiveBlending,
-        });
+    function render() {
+        frame += 1
+        if (frame > 1000) {
+            return;
+        }
+//        console.log("frame", frame);
+        add = frame * 0.03;
 
-        // Initialize the scene
-        const scene2 = new THREE.Scene();
+        renderer.setRenderTarget(bufferTexture);
+        renderer.setClearColor(new THREE.Color( 0x000000 ), 1.0);
+        renderer.clear();
 
-        const geo2 = new THREE.PlaneBufferGeometry(0.5, 1.2);
-        mat.color.setHex(0xff00ff);
-        const mesh2 = new THREE.Mesh(geo2, shaderMat);
-        scene2.add(mesh2);
+//        console.log(grad.version);
 
+//        renderMovingCircles();
+        renderRecords();
+
+        shaderMat.uniforms.u_texture.value = bufferTexture.texture;
         renderer.setRenderTarget(null);
-        renderer.render(scene2, camera);
+        renderer.render(shaderScene, camera);
         renderer.resetState();
     }
+
+    runGL.render = render;
 
     if (withMaps) {
         initScene().then(() => {
@@ -174,12 +280,12 @@ void main() {
             };
 
             webglOverlayView.onDraw = (gl, coordinateTransformer) => {
-                webglOverlayView.requestRedraw();
                 render();
+                webglOverlayView.requestRedraw();
             }
 
             webglOverlayView.setMap(map);
-            webglOverlayView.requestRedraw();
+//            webglOverlayView.requestRedraw();
 
         });
     } else {

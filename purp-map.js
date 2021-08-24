@@ -9,6 +9,8 @@ var minTm = null, maxTm = null;
 var curTm;
 var infowindow;
 
+var visibleRecs;
+
 function updateTimeSlider(value)
 {
     console.log(value);
@@ -49,7 +51,7 @@ function animate()
             curTm = minTm;
         }
 
-        let visibleCount = 0;
+        visibleRecs = [];
 
         recs.forEach(rec => {
             if (!bounds.contains(rec.position)) {
@@ -61,7 +63,7 @@ function animate()
                 return;
             }
             // Visible
-            visibleCount++;
+            visibleRecs.push(rec);
             if (!rec.visible) {
                 rec.visible = true;
                 rec.marker.setMap(map);
@@ -72,15 +74,16 @@ function animate()
             } else {
                 const MAX_AQI = 300;
                 aqi = Math.min(MAX_AQI, aqi);
-                let perc = Math.trunc(100 * (aqi / MAX_AQI));
+                let perc = Math.trunc(10 * (aqi / MAX_AQI)) * 10;
                 let iconUrl = `purp-map-img/icon-${perc}.png`;
                 rec.icon.url = iconUrl;
                 rec.marker.setIcon(rec.icon);
                 rec.marker.setVisible(true);
+                rec.currentAqi = aqi;
             }
         });
 
-        $("#tm").html(`Time: ${new Date(curTm * 1000)} (${visibleCount}/${recs.length} sensors)`);
+        $("#tm").html(`Time: ${new Date(curTm * 1000)} (${visibleRecs.length}/${recs.length} sensors)`);
         $("#time-slider").attr("min", minTm).attr("max", maxTm).attr("step", HOUR_SEC).attr("value", curTm).val(curTm)
 
     }, DELAY);
