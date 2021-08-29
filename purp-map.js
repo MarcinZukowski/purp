@@ -86,6 +86,76 @@ function animate()
     }, DELAY);
 }
 
+function optimizeSet(set, level)
+{
+    let latRange = 4.0 / Math.pow(2, level);  // Size of a single bucket
+    let lngRange = latRange;
+    let buckets = []
+    console.log(set.length);
+    // Put all input in buckets
+    for (let r = 0; r < set.length; r++) {
+        let rec = set[r];
+        let latBucket = Math.floor((rec.lat + 180.0) / latRange) * latRange - 180.0;
+        let lngBucket = Math.floor((rec.long + 180.0) / lngRange) * lngRange - 180.0 ;
+        let bucketKey = [latBucket, lngBucket];
+//         console.log(`lat=${rec.lat} lng=${rec.long}  bucketKey=${bucketKey}`);
+        let list = buckets[bucketKey];
+        if (!list) {
+            list = [];
+            buckets[bucketKey] = list;
+        }
+        list.push(rec);
+    }
+
+    let res = 0;
+    // Iterate over all buckets
+    for (const [key, list] of Object.entries(buckets)) {
+        if (list.length == 1) {
+            // Nothing to do for that bucket
+            rec.minLevel = level;
+            return;
+        }
+        // Split this list into up to 4
+        let list = optimizeSet(list, level + 1);
+        if (list.length == 1) {
+            rec.minLevel = level;
+            return;
+        }
+        // Introduce a new fake record that combines all recs in this bucket
+        let avgLat = 0, avgLng = 0, avgSnaps = [], weight = 0;
+        list.foreach(rec => {
+            let recWeight = rec.weight || 1;
+            avgLat += rec.lat * recWeight;
+            avgLng += rec.long * recWeight;
+            Object.entries(rec.snaps).forEach(([snap, val]) => {
+                // We keep [sum, count] for each snap
+                let pair = avgSnaps[snap];
+                if (!pair) {
+                    pair = [0, 0];
+                    avgSnaps[snap] = pair;
+                }
+                pair[0] += val * recWeight;
+                pair[1] += recWeight;
+            });
+            weight += rec.weight;
+        });
+
+        let snaps = avgSnaps.forEach(pair => pair[0] / pair[1]);
+        let rec = {
+            lat: avgLat / weight,
+            long: avgLng / weight,
+            snaps: snaps,
+            weight: weight,
+            maxLevel: level,
+        };
+        recs.push(rec);
+    }
+    foo();
+}
+function optimizeRecs()
+{
+    optimizeSet(recs, 0);
+}
 
 function consume(data)
 {
@@ -158,6 +228,8 @@ function consume(data)
         rec.position = position;
         rec.visible = false;
     }
+
+//    optimizeRecs();
 
     curTm = minTm;
     animate()
