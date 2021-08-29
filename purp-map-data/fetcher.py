@@ -7,13 +7,16 @@ import pathlib
 import requests
 import sys
 import time
+import threading
 
 TOK_THINGSPEAK_PRIMARY_ID = "THINGSPEAK_PRIMARY_ID"
 TOK_THINGSPEAK_PRIMARY_ID_READ_KEY = "THINGSPEAK_PRIMARY_ID_READ_KEY"
 
 DATA_DIR = "./data-cache"
 
-GET_SLEEP = 0.5
+IN_BACKGROUND = True
+GET_SLEEP = 0.1
+MAX_THREADS=20
 
 class Cache:
     @staticmethod
@@ -40,6 +43,11 @@ class Cache:
         path = os.path.join(DATA_DIR, fname)
         print(f"Removing {fname}")
         os.unlink(path)
+
+    @staticmethod
+    def contains(fname):
+        path = os.path.join(DATA_DIR, fname)
+        return os.path.exists(path)
 
 
 def getUrl(url):
@@ -70,25 +78,43 @@ def getSensorTimeline(channel, api_key):
 
 Cache.init()
 
-for id in range(1000, 80000):
-    print()
+def handle_id(id):
     fname_data = f"{id}.data"
+    print(f"{id}: Getting: {fname_data}")
     data = Cache.get(fname_data, partial(getSensorData, id))
     status = data["status_code"]
-    print(f"Status: {status}")
+    print(f"{id}: Status(data): {status}")
     if status != 200:
+        print(f"{id}: ====================== Deleting {fname_data}")
         Cache.clear(fname_data)
-        continue
+        return
     results = data["text"]["results"]
     if len(results) == 0:
-        print("Skipping: empty")
-        continue
+        print(f"{id}: Skipping: empty")
+        return
     if results[0].get("DEVICE_LOCATIONTYPE") == "inside":
-        print("Skipping: inside")
-        continue
+        print(f"{id}: Skipping: inside")
+        return
+    if results[0].get("ParentID"):
+        print(f"{id}: Skipping: has a parent")
+        return
     fname_timeline = f"{id}.timeline"
     channel = data["text"]["results"][0][TOK_THINGSPEAK_PRIMARY_ID]
     api_key = data["text"]["results"][0][TOK_THINGSPEAK_PRIMARY_ID_READ_KEY]
+
     timeline = Cache.get(fname_timeline, partial(getSensorTimeline, channel, api_key))
-    if timeline["status_code"] != 200:
+    print(f"{id}: Status(timeline): {timeline['status_code']}")
+    status = timeline["status_code"]
+    if status != 200:
+        print(f"{id}: ====================== Deleting {fname_timeline}")
         Cache.clear(fname_timeline)
+
+assert MAX_THREADS >= 2
+for id in range(1000, 80000):
+    if IN_BACKGROUND:
+        while threading.activeCount() >= MAX_THREADS:
+            time.sleep(0.01)
+        func = partial(handle_id, id)
+        threading.Thread(target=func).start()
+    else:
+        handle_id(id)
