@@ -62,11 +62,13 @@ void main() {
     float H = pixel_color.r / pixel_color.g;  // in range 0..1
     H = fract(GREEN - H * RANGE);
 
+//    H = floor(H * 8.0) / 8.0;
+
     vec3 hsv = vec3(H, 1.0, 1.0);
     pixel_color = hsv2rgb(hsv);
-    
+
     gl_FragColor = vec4(pixel_color, alpha);
-}    
+}
 `;
 
     async function loadGrad()
@@ -107,7 +109,7 @@ void main() {
         visScene.add(visMesh);
 
         // Create the texture that will store our result
-        bufferTexture = new THREE.WebGLRenderTarget(512, 512, {
+        bufferTexture = new THREE.WebGLRenderTarget(1024, 1024, {
             minFilter: THREE.LinearFilter,
             magFilter: THREE.NearestFilter,
             type: THREE.FloatType,
@@ -150,7 +152,8 @@ void main() {
         }
 
         const EQUATOR = 40075.0; //km
-        const RANGE = 25.0; // km
+        const RANGE = Math.min(1000, 10000.0 / (Math.pow(2, map.getZoom()))); // km
+        // const RANGE = 25; // km
         const DIAM_IN_DEG_X = (RANGE / EQUATOR) * 360.0;
 
         let bounds = map.getBounds();
