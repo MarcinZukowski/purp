@@ -5,6 +5,7 @@ import glob
 import json
 import os
 import sys
+import subprocess
 
 DATA_DIR = "./data-cache"
 FILE_PATTERN = "*.timeline"
@@ -77,3 +78,6 @@ print(f"Saving {len(recs)} records (out of {len(files)} files)")
 
 with open(PREPROC_FILE, "w") as f:
     json.dump(recs, f, separators=(",", ": "))
+
+print(f"Compressing {PREPROC_FILE} into {PREPROC_FILE}.zst")
+subprocess.run(f"zstd -f -15 {PREPROC_FILE}", shell=True)
