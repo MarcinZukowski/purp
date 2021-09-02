@@ -31,3 +31,8 @@ body {
     font-size: 20pt;
     text-shadow: red 0px 0px 2px;
 }
+
+.purp-map label {
+    color: white;
+    font-size: 14pt;
+}

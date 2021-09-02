@@ -32,9 +32,15 @@
 <body onload="init()">
 
 <div id="map"></div>
-<div id="menu">
+<div id="menu" class="purp-map">
     <div id="tm">Loading...</div>
     <input id="time-slider" type="range" class="form-range" onchange="updateTimeSlider(this.value);">
+    <input id="check-animate" type="checkbox" checked/>
+    <label for="check-animate">Animate</label>
+    <input id="check-layers" type="checkbox" checked/>
+    <label for="check-animate">Layers</label>
+    <input id="check-loop" type="checkbox"/>
+    <label for="check-loop">Loop</label>
 </div>
 </body>
 </html>

@@ -28,6 +28,7 @@ void main() {
 #define GLSLIFY 1
 
 uniform sampler2D u_texture;
+uniform bool u_layers_on;
 varying vec2 vUv;
 
 // All components are in the range [0…1], including hue.
@@ -49,7 +50,7 @@ void main() {
 
     // Compute alpha
     const float CUTOFF = 0.1;
-    const float MAX = 0.5;
+    const float MAX = 0.45;
     alpha = alpha < CUTOFF ? alpha / CUTOFF * MAX : MAX;
 
     // Compute pixel color. 
@@ -62,7 +63,9 @@ void main() {
     float H = pixel_color.r / pixel_color.g;  // in range 0..1
     H = fract(GREEN - H * RANGE);
 
-//    H = floor(H * 8.0) / 8.0;
+    if (u_layers_on) {
+        H = floor(H * 16.0) / 16.0;
+    }
 
     vec3 hsv = vec3(H, 1.0, 1.0);
     pixel_color = hsv2rgb(hsv);
@@ -119,6 +122,10 @@ void main() {
         uniforms = {
             u_texture : {
                 type : "t",
+            },
+            u_layers_on : {
+                type : "b",
+                value : true
             }
         };
         shaderMat = new THREE.ShaderMaterial({
@@ -152,9 +159,13 @@ void main() {
         }
 
         const EQUATOR = 40075.0; //km
-        const RANGE = Math.min(1000, 10000.0 / (Math.pow(2, map.getZoom()))); // km
-        // const RANGE = 25; // km
+//        const RANGE = Math.min(1000, 10000.0 / (Math.pow(2, map.getZoom()))); // km
+        const RANGE = 25; // km
         const DIAM_IN_DEG_X = (RANGE / EQUATOR) * 360.0;
+        const now = Date.now();
+        const animFrac = $("#check-animate").is(":checked")
+            ? Math.min(1.0, (now - lastDataGen) / DELAY)
+            : 0.0;
 
         let bounds = map.getBounds();
         let boundsNE = bounds.getNorthEast();
@@ -202,6 +213,8 @@ void main() {
             visScene.add(mesh);
 
             let aqi = rec.currentAqi;
+            // Adjust AQI for animation
+            aqi += (rec.nextAqi - rec.currentAqi) * animFrac;
             aqi = Math.min(AQI_MAX, aqi);
             let aqiVal = aqi / AQI_MAX;
             mesh.material.color.setRGB(FRAC * aqiVal, FRAC, 1.0);
@@ -225,6 +238,7 @@ void main() {
         renderRecords();
 
         shaderMat.uniforms.u_texture.value = bufferTexture.texture;
+        shaderMat.uniforms.u_layers_on.value = $("#check-layers").is(':checked');
         renderer.setRenderTarget(null);
         renderer.render(shaderScene, camera);
 

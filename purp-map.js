@@ -11,11 +11,13 @@ var infowindow;
 
 var visibleRecs;
 
+// Time when the last data was generated, used for animation
+var lastDataGen;
+
 const DELAY = 250;  // ms
 
 function updateTimeSlider(value)
 {
-    console.log(value);
     curTm = parseInt(value);
 }
 
@@ -38,6 +40,7 @@ function animate()
 {
     let HOUR_SEC = 3600;
     window.setInterval(() => {
+        lastDataGen = Date.now();
         if (!map) {
             return;
         }
@@ -48,8 +51,11 @@ function animate()
 
         curTm = curTm + HOUR_SEC;
         if (curTm > maxTm) {
+            if ($("#check-loop").is(":checked")) {
+                // loop
+                curTm = minTm;
+            }
             return;
-            curTm = minTm;
         }
 
         visibleRecs = [];
@@ -67,7 +73,14 @@ function animate()
             // Visible
             visibleRecs.push(rec);
             rec.currentAqi = aqi;
+            // Also compute nextAqi
+            let nextAqi;
+            if (curTm < maxTm) {
+                nextAqi = rec.snaps[curTm + HOUR_SEC];
+            }
+            rec.nextAqi = nextAqi || rec.currentAqi;
             return;
+            
             if (!rec.visible) {
                 rec.visible = true;
                 rec.marker.setMap(map);
