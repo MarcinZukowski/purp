@@ -16,8 +16,12 @@ print(len(files))
 
 recs = []
 
+cnt = len(files)
+cur = 0
+
 for fname in files:
-    print(f"Processing: {fname}")
+    cur += 1
+    print(f"{cur}/{cnt} Processing: {fname}")
     prefix = os.path.splitext(fname)[0]
     id = os.path.split(prefix)[1]
 
