@@ -36,3 +36,9 @@ body {
     color: white;
     font-size: 14pt;
 }
+
+.check-divider::before {
+    content: "";
+    display: inline-block;
+    width: 20px;
+}

@@ -161,8 +161,16 @@ void main() {
         let zoomLevel = map.getZoom();
 
         const EQUATOR = 40075.0; //km
-//        const RANGE = Math.min(1000, 10000.0 / (Math.pow(2, map.getZoom()))); // km
-        const RANGE = 25; // km
+
+        let RANGE;
+        if ($("#check-fixed-size").is(":checked")) {
+            // Use size that doesn't depend on zoom level
+            RANGE = Math.min(1000, 10000.0 / (Math.pow(2, map.getZoom()))); // km
+        } else {
+            // Use real-world size
+            RANGE = 20;  // km
+        }
+
         const DIAM_IN_DEG_X = (RANGE / EQUATOR) * 360.0;
         const now = Date.now();
         const animFrac = $("#check-animate").is(":checked")
