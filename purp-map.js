@@ -14,6 +14,8 @@ var visibleRecs;
 // Time when the last data was generated, used for animation
 var lastDataGen;
 
+var MIN_ZOOM_LEVEL = 5;
+
 const DELAY = 250;  // ms
 
 function updateTimeSlider(value)
@@ -54,11 +56,19 @@ function animate()
             if ($("#check-loop").is(":checked")) {
                 // loop
                 curTm = minTm;
+            } else {
+                curTm = maxTm;
             }
-            return;
         }
 
         visibleRecs = [];
+
+        let zoomLevel = map.getZoom();
+        zoomLevel = Math.trunc(Math.max(1, zoomLevel - MIN_ZOOM_LEVEL +  1));
+
+        let weightSum = 0;
+
+        let useGroups = $("#check-group").is(':checked');
 
         recs.forEach(rec => {
             let aqi = rec.snaps[curTm];
@@ -70,8 +80,18 @@ function animate()
                 }
                 return;
             }
+            if (useGroups) {
+                if (rec.minLevel > zoomLevel || rec.maxLevel < zoomLevel) {
+                    return;
+                }
+            } else {
+                if (rec.weight > 1) {
+                    return;
+                }
+            }
             // Visible
             visibleRecs.push(rec);
+            weightSum += rec.weight;
             rec.currentAqi = aqi;
             // Also compute nextAqi
             let nextAqi;
@@ -94,24 +114,36 @@ function animate()
             rec.marker.setVisible(true);
         });
 
-        $("#tm").html(`Time: ${new Date(curTm * 1000)} (${visibleRecs.length}/${recs.length} sensors)`);
+        let groupText = useGroups ? ` in ${visibleRecs.length} groups` : ""
+        $("#tm").html(`Time: ${new Date(curTm * 1000)}<br/>${weightSum}/${recs.length} sensors${groupText}`);
         $("#time-slider").attr("min", minTm).attr("max", maxTm).attr("step", HOUR_SEC).attr("value", curTm).val(curTm);
     }, DELAY);
 }
 
+// For a set of input records, split into buckets (based on the level)
+// and group records in any bucket into a single new record.
+// Return records at this level.
+// Bucket size gets smaller with level increasing.
+// Each record is marked with minLevel and maxLevel, and is visible if (minLevel <= zoomLevel <= maxLevel)
 function optimizeSet(set, level)
 {
-    let latRange = 4.0 / Math.pow(2, level);  // Size of a single bucket
+    // Stop at level some level
+    if (level == 10) {
+        for (let r = 0; r < set.length; r++) {
+            set[r].maxLevel = 1000;  //
+        }
+        return set;
+    }
+
+    let latRange = 1.0 / Math.pow(2, level);  // Size of a single bucket
     let lngRange = latRange;
-    let buckets = []
-    console.log(set.length);
-    // Put all input in buckets
+    let buckets = {}
+    // Put all input recs in their buckets by lat/lng
     for (let r = 0; r < set.length; r++) {
         let rec = set[r];
         let latBucket = Math.floor((rec.lat + 180.0) / latRange) * latRange - 180.0;
-        let lngBucket = Math.floor((rec.long + 180.0) / lngRange) * lngRange - 180.0 ;
-        let bucketKey = [latBucket, lngBucket];
-//         console.log(`lat=${rec.lat} lng=${rec.long}  bucketKey=${bucketKey}`);
+        let lngBucket = Math.floor((rec.lng + 180.0) / lngRange) * lngRange - 180.0 ;
+        let bucketKey = 10000 * latBucket + lngBucket;
         let list = buckets[bucketKey];
         if (!list) {
             list = [];
@@ -120,27 +152,43 @@ function optimizeSet(set, level)
         list.push(rec);
     }
 
-    let res = 0;
+    let result = [];
     // Iterate over all buckets
-    for (const [key, list] of Object.entries(buckets)) {
+    for ([key, list] of Object.entries(buckets)) {
         if (list.length == 1) {
-            // Nothing to do for that bucket
+            // Just one entry in this bucket, add it to the list as is.
+            // Also, this entry is visible from this level (at least)
+            let rec = list[0]
             rec.minLevel = level;
-            return;
+            result.push(rec);
+            continue;
         }
-        // Split this list into up to 4
-        let list = optimizeSet(list, level + 1);
+        // More than 2 records in that bucket.
+        // Split this bucket contents into up to 4
+        list = optimizeSet(list, level + 1);
         if (list.length == 1) {
+            // Only 1 of sub-buckets had children, promote it to this level
+            let rec = list[0]
             rec.minLevel = level;
-            return;
+            result.push(rec)
+            continue;
         }
+        // Multiple records in different sub-buckets
         // Introduce a new fake record that combines all recs in this bucket
-        let avgLat = 0, avgLng = 0, avgSnaps = [], weight = 0;
-        list.foreach(rec => {
-            let recWeight = rec.weight || 1;
-            avgLat += rec.lat * recWeight;
-            avgLng += rec.long * recWeight;
-            Object.entries(rec.snaps).forEach(([snap, val]) => {
+        let sumLat = 0, sumLng = 0, avgSnaps = [], sumWeight = 0;
+        let minLat, maxLat, minLng, maxLng;
+        minLat = maxLat = list[0].lat;
+        minLng = maxLng = list[0].lng;
+        for (let l = 0; l < list.length; l++) {
+            let rec = list[l];
+            let recWeight = rec.weight;
+            sumLat += rec.lat * recWeight;
+            sumLng += rec.lng * recWeight;
+            minLat = Math.min(minLat, rec.minLat);
+            maxLat = Math.max(maxLat, rec.maxLat);
+            minLng = Math.min(minLng, rec.minLng);
+            maxLng = Math.max(maxLng, rec.maxLng);
+            for (const [snap, val] of Object.entries(rec.snaps)) {
                 // We keep [sum, count] for each snap
                 let pair = avgSnaps[snap];
                 if (!pair) {
@@ -149,25 +197,51 @@ function optimizeSet(set, level)
                 }
                 pair[0] += val * recWeight;
                 pair[1] += recWeight;
-            });
-            weight += rec.weight;
-        });
+            }
+            sumWeight += rec.weight;
+            // Mark rec as not visible at this or lower levels
+            rec.minLevel = level + 1;
+        }
 
-        let snaps = avgSnaps.forEach(pair => pair[0] / pair[1]);
+        let snaps = {}
+        for (const [snap, pair] of Object.entries(avgSnaps)) {
+            snaps[snap] = pair[0] / pair[1];
+        }
+        let lat = sumLat / sumWeight;
+        let lng = sumLng / sumWeight;
         let rec = {
-            lat: avgLat / weight,
-            long: avgLng / weight,
+            lat: lat,
+            lng: lng,
+            position: new google.maps.LatLng(lat, lng),
             snaps: snaps,
-            weight: weight,
+            weight: sumWeight,
+            minLevel: level,
             maxLevel: level,
+            minLat: minLat,
+            maxLat: maxLat,
+            minLng: minLng,
+            maxLng: maxLng,
         };
+
+        result.push(rec);
+
+        // Also add this new record to the global list
         recs.push(rec);
     }
-    foo();
+    return result;
 }
+
 function optimizeRecs()
 {
-    optimizeSet(recs, 0);
+    for (let r = 0; r < recs.length; r++) {
+        let rec = recs[r];
+        rec.weight = 1;
+        rec.minLat = rec.lat;
+        rec.maxLat = rec.lat;
+        rec.minLng = rec.lng;
+        rec.maxLng = rec.lng;
+    }
+    optimizeSet(recs, 1);
 }
 
 function consume(data)
@@ -217,7 +291,11 @@ function consume(data)
 
         rec.snaps = snaps;
 
-        let position = new google.maps.LatLng(rec.lat, rec.long);
+        // We try to use lng ipo long everywhere
+        rec.lng = rec.long;
+        delete rec.long;
+
+        let position = new google.maps.LatLng(rec.lat, rec.lng);
         let label = `id: <b>${rec.id}</b>`
 
         icon = {
@@ -242,7 +320,7 @@ function consume(data)
         rec.visible = false;
     }
 
-//    optimizeRecs();
+    optimizeRecs();
 
     curTm = minTm;
     animate()
@@ -273,7 +351,8 @@ async function initMap() {
         center: new google.maps.LatLng(lat, lng),
         zoom: zoom,
         mapTypeId: mapTypeId,
-        mapId: "44f4acbc0b00dbf9"
+        mapId: "44f4acbc0b00dbf9",
+        minZoom: MIN_ZOOM_LEVEL,
     });
     return map;
 }

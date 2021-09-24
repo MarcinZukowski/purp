@@ -138,6 +138,22 @@ function fahrenheitToColor(temp)
     return tinycolor({ h: hue, s: 1, l: .7 }).toHexString();
 }
 
+var __log_counter = 0;
+const __log_counter_max = 100;
+
+function log(...args)
+{
+    __log_counter++;
+    if (__log_counter >= __log_counter_max) {
+        if (__log_counter == __log_counter_max) {
+            console.log("PURP: Too many logs, stopping");
+        }
+        return;
+    }
+
+    console.log(`PURP: ${args}`);
+}
+
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
 const HOUR = 60 * MINUTE;

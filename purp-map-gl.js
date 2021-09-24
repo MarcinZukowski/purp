@@ -84,7 +84,7 @@ void main() {
     async function initScene()
     {
         await loadGrad();
-        console.log("called loadGrad")
+        log("called loadGrad")
 
         // Initialize the camera
         camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -154,9 +154,11 @@ void main() {
     function renderRecords()
     {
         if (!visibleRecs) {
-            console.log("----------------- visibleRecs not ready");
+            log("----------------- visibleRecs not ready");
             return;
         }
+
+        let zoomLevel = map.getZoom();
 
         const EQUATOR = 40075.0; //km
 //        const RANGE = Math.min(1000, 10000.0 / (Math.pow(2, map.getZoom()))); // km
@@ -188,8 +190,6 @@ void main() {
         let FRAC = 0.05;
         const AQI_MAX = 300;
 
-        let yscale = (DIAM_IN_DEG_X / boundsRangeY);
-
         visScene.clear();
 
         for (let r = 0; r < visibleRecs.length; r++) {
@@ -197,7 +197,14 @@ void main() {
             let recPoint = mapProjection.fromLatLngToPoint(rec.position);
             let glX = 2 * (recPoint.x - projLeft) / projRangeX - 1.0;
             let glY = - (2 * (recPoint.y - projTop) / projRangeY - 1.0);
-            let xscale = (DIAM_IN_DEG_X / Math.cos(rec.lat / 180.0) / boundsRangeX);
+
+            // Size depends on min/max lat/lng - for points, min/max is equal
+            // For Y/lat, the size doesn't depend on position
+            let yrange = rec.maxLat - rec.minLat + DIAM_IN_DEG_X;
+            let yscale = (yrange / boundsRangeY);
+            // For X/lng, the size changes with the latitude,
+            let xrange = rec.maxLng - rec.minLng + DIAM_IN_DEG_X;
+            let xscale = (xrange / Math.cos(rec.lat / 180.0) / boundsRangeX);
 
             if (!rec.mesh) {
                 rec.mesh = visMesh.clone();
@@ -226,10 +233,12 @@ void main() {
         renderer.resetState();
 
         frame += 1
-        if (frame > 1000) {
-//            return;
+        if (frame >= 10000) {
+            if (frame == 10000) {
+                log("Max frame reached");
+            }
+            return;
         }
-//        console.log("frame", frame);
 
         renderer.setRenderTarget(bufferTexture);
         renderer.setClearColor(new THREE.Color( 0x000000 ), 0.0);
@@ -266,6 +275,9 @@ void main() {
             };
 
             webglOverlayView.onDraw = (gl, coordinateTransformer) => {
+                gl.getExtension('EXT_color_buffer_float');
+                gl.getExtension('EXT_float_blend');
+                gl.getExtension('WEBGL_color_buffer_float');
                 render();
                 webglOverlayView.requestRedraw();
             }
