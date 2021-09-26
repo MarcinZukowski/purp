@@ -1,9 +1,9 @@
 // See also: https://gispub.epa.gov/airnow/?xmin=-13664250.073993878&ymin=4437038.424618474&xmax=-13515534.191762239&ymax=4531093.194773805&clayer=none&mlayer=ozonepm
-// ●
 const USE_ZSTD = true;
 
 var map;
 var recs;
+var groups;
 var minTm = null, maxTm = null;
 
 var curTm;
@@ -70,7 +70,12 @@ function animate()
 
         let useGroups = $("#check-group").is(':checked');
 
-        recs.forEach(rec => {
+        let combined = recs;
+        if (useGroups) {
+            combined = combined.concat(groups);
+        }
+
+        combined.forEach(rec => {
             let aqi = rec.snaps[curTm];
             if (!bounds.contains(rec.position) || !aqi) {
                 // Not visible
@@ -82,10 +87,6 @@ function animate()
             }
             if (useGroups) {
                 if (rec.minLevel > zoomLevel || rec.maxLevel < zoomLevel) {
-                    return;
-                }
-            } else {
-                if (rec.weight > 1) {
                     return;
                 }
             }
@@ -225,14 +226,15 @@ function optimizeSet(set, level)
 
         result.push(rec);
 
-        // Also add this new record to the global list
-        recs.push(rec);
+        // Also add this new record to the global list of groups
+        groups.push(rec);
     }
     return result;
 }
 
 function optimizeRecs()
 {
+    groups = [];
     for (let r = 0; r < recs.length; r++) {
         let rec = recs[r];
         rec.weight = 1;
