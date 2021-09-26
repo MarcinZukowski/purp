@@ -37,27 +37,27 @@
     <input id="time-slider" type="range" class="form-range" onchange="updateTimeSlider(this.value);">
 
     <input id="check-animate" type="checkbox" checked/>
-    <label for="check-animate">Animate</label>
+    <label for="check-animate" title="If checked, the values between the time snapshots are interpolated">Animate</label>
 
     <span class="check-divider"/>
 
     <input id="check-layers" type="checkbox" checked/>
-    <label for="check-layers">Layers</label>
+    <label for="check-layers" title="If checked, the colors are non-continuous">Layers</label>
 
     <span class="check-divider"/>
 
     <input id="check-group" type="checkbox" checked/>
-    <label for="check-group">Group points</label>
+    <label for="check-group" title="If checked, multiple sensors are grouped at lower zoom levels. Improves performance.">Group sensors</label>
 
     <span class="check-divider"/>
 
     <input id="check-fixed-size" type="checkbox" checked/>
-    <label for="check-fixed-size">Fixed-size</label>
+    <label for="check-fixed-size" title="If checked, the sensor size stays the same at different zoom levels">Fixed-size</label>
 
     <span class="check-divider"/>
 
     <input id="check-loop" type="checkbox"/>
-    <label for="check-loop">Loop</label>
+    <label for="check-loop" title="If checked, the animation loops at the end of the time range">Loop</label>
 </div>
 </body>
 </html>
