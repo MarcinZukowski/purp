@@ -2,7 +2,7 @@
 
 import {runGL} from './purp-map-gl.js'
 import {initMap, map} from "./purp-map-gmap.js";
-import {setCurTm, USE_ZSTD, DELAY, consumeData, updateData} from "./purp-map-state.js";
+import {loadData, updateData, setCurTm, DELAY} from "./purp-map-state.js";
 
 var infowindow;
 
@@ -26,7 +26,7 @@ function showMarkerInfo(rec)
     });
 }
 
-function animate()
+function startAnimation()
 {
     window.setInterval(updateData, DELAY);
 }
@@ -47,25 +47,16 @@ function initWithGL()
     runGL(false);
 }
 
-async function consume(data)
-{
-    await consumeData(data);
-    animate();
-}
-
-function initWithMaps(map)
+async function initWithMaps(map)
 {
     map.addListener('zoom_changed', update_url);
     map.addListener('center_changed', update_url);
 
     runGL(true);
 
-    const dataFile = "purp-map-data/preproc.json" + (USE_ZSTD ? ".zst" : "")
-    if (USE_ZSTD) {
-        fetch(dataFile).then(data => data.arrayBuffer()).then(consume);
-    } else {
-        fetch(dataFile).then(data=>data.json()).then(consume);
-    }
+    await loadData();
+
+    startAnimation();
 }
 
 async function init()

@@ -302,6 +302,18 @@ function parseData(data)
     curTm = minTm;
 }
 
+async function loadData()
+{
+    const dataFile = "purp-map-data/preproc.json" + (USE_ZSTD ? ".zst" : "")
+    let waitFor;
+    if (USE_ZSTD) {
+        waitFor = fetch(dataFile).then(data => data.arrayBuffer()).then(consumeData);
+    } else {
+        waitFor = fetch(dataFile).then(data=>data.json()).then(consumeData);
+    }
+    await waitFor;
+}
+
 function consumeData(data)
 {
     parseData(data);
@@ -309,4 +321,4 @@ function consumeData(data)
     $("#tm").html(`Data ready`);
 }
 
-export {consumeData, updateData, visibleRecs, setCurTm, USE_ZSTD, lastDataGen, DELAY}
+export {loadData, updateData, visibleRecs, setCurTm, USE_ZSTD, lastDataGen, DELAY}
