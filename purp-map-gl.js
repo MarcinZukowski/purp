@@ -1,19 +1,20 @@
-var webglOverlayView;
+let webglOverlayView;
+
+import {map} from "./purp-map-gmap.js";
+import {visibleRecs, lastDataGen, DELAY} from "./purp-map-state.js";
 
 function runGL(withMaps)
 {
-    'use strict';
+    let renderer, camera, uniforms;
+    let bufferTexture
 
-    var renderer, camera, uniforms;
-    var bufferTexture
+    let shaderMat, shaderScene;
 
-    var shaderMat, shaderScene;
+    let visScene, visMat, visMesh;
 
-    var visScene, visMat, visMesh;
+    let grad;
 
-    var grad;
-
-    var vertexShader = `
+    let vertexShader = `
 #define GLSLIFY 1
 
 varying vec2 vUv;
@@ -24,7 +25,7 @@ void main() {
 }
 `;
 
-    var fragmentShader = `
+    let fragmentShader = `
 #define GLSLIFY 1
 
 uniform sampler2D u_texture;
@@ -315,3 +316,5 @@ void main() {
         });
     }
 }
+
+export {runGL};
