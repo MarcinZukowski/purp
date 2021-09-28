@@ -1,7 +1,7 @@
 // See also: https://gispub.epa.gov/airnow/?xmin=-13664250.073993878&ymin=4437038.424618474&xmax=-13515534.191762239&ymax=4531093.194773805&clayer=none&mlayer=ozonepm
 
 import {runGL} from './purp-map-gl.js'
-import {initMap} from "./purp-map-gmap.js";
+import {initMap, map} from "./purp-map-gmap.js";
 import {setCurTm, USE_ZSTD, DELAY, consumeData, updateData} from "./purp-map-state.js";
 
 var infowindow;
@@ -74,5 +74,6 @@ async function init()
     initWithMaps(map);
 }
 
-// Make it visible for onload
+// Make it visible for html
 window.init = init;
+window.updateTimeSlider = updateTimeSlider;
