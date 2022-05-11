@@ -18,5 +18,5 @@ Access:
 ## Pushing to S3
 
     time aws s3 sync --no-follow-symlinks --delete \
-        --exclude '.*' --exclude "*.DS_Store" --exclude "*data-cache/*" \
+        --exclude '.*' --exclude *private* --exclude "*.DS_Store" --exclude "*data-cache/*" \
         . s3://marcin-pub/purp/

@@ -267,12 +267,12 @@ void main() {
 
     if (withMaps) {
         initScene().then(() => {
-            webglOverlayView = new google.maps.WebglOverlayView();
+            webglOverlayView = new google.maps.WebGLOverlayView();
 
             webglOverlayView.onAdd = () => {
             };
 
-            webglOverlayView.onContextRestored = (gl) => {
+            webglOverlayView.onContextRestored = ({gl}) => {
                 fun("---------------onContextRestored");
                 renderer = new THREE.WebGLRenderer({
                     canvas: gl.canvas,
@@ -283,7 +283,7 @@ void main() {
                 renderer.autoClear = false;
             };
 
-            webglOverlayView.onDraw = (gl, coordinateTransformer) => {
+            webglOverlayView.onDraw = ({gl, coordinateTransformer}) => {
                 gl.getExtension('EXT_color_buffer_float');
                 gl.getExtension('EXT_float_blend');
                 gl.getExtension('WEBGL_color_buffer_float');
